@@ -1,13 +1,13 @@
 ## DESCRIPTION OF DATA ORGANIZATION AND METADATA IN THE LEGUME FEDERATION PRIMARY REPOSITORY AND FEDERATION SITES
 
 Steven Cannon
-Revision: 2017-07-18
+Revision: 2017-07-19
 
 
 Return to the [metadata folder](.).
 
 
-### OBJECTIVES AND PRINCIPLES
+### OBJECTIVES AND PRINCIPLES 
 1. A clear system (for curators and users)
   - Consistent, prescribed prefixes, abbreviations, etc.
 2. Easy navigation for users
@@ -92,7 +92,7 @@ The basic, simple concepts of federated repositories are:
       map => genetic map 
     In the version (v#.#), v1 implies v1.0. The decimal is used for subversions, e.g. v1.1
 ```
-  Example of directory names for a species:
+#### Example of directory names for a species:
 ```
     Lupinus_angustifolius/
       P27255.tcp1.ycvS/
@@ -114,13 +114,18 @@ README.KEY#.md
 ### FILE NAMING SCHEME
   
 Principles in the file naming are:
-```
-    - Include brief, prescribed, descriptive prefixes, including
-      - gensp, e.g. glyma
-      - analysis type and version, e.g. gnm1 or tcp1
-      - key#, e.g. DFgp
-      - suffix, giving data and/or molecule type, e.g. gene.gff3 or protein.faa
-```
+- Include brief, prescribed, descriptive prefixes:
+  - gensp, e.g. glyma
+  - analysis type and version, e.g. gnm1 or tcp1
+  - key#, e.g. DFgp
+- Use consistent suffixes:
+  - faa - protein FASTA
+  - fna - nucleotide FASTA
+  - gff3 - GFF
+  - md - README files
+  - tsv - ascii table file
+  - txt - ascii files other than READMEs
+
 Within the GENOTYPE.ANALYSIS#/ directories, files have this format:
 gensp.GENOTYPE.ANALYSIS#.KEY#.file_type.ext.gz
 where file_type is a prescribed, abbreviated description of the contents, 
@@ -164,7 +169,7 @@ database loading and browsers):
 
 ### EXAMPLES OF DIRECTORIES AND FILES:
   
-### GENOME ASSEMBLY
+#### Genome assembly
 ```
   Lupinus_angustifolius/
     Tanjil.gnm1.Qq0N/
@@ -185,7 +190,7 @@ database loading and browsers):
       vigan.Gyeongwon.genome1.JyYC.pchr_plus_unanchored.fna.gz
 ```
 
-### GENOME ANNOTATION
+#### Genome annotation
 ```
   Lupinus_angustifolius/
     Tanjil.gnm1.ann1.nnV9/
@@ -215,7 +220,7 @@ database loading and browsers):
       vigan.Gyeongwon.gnm3.ann1.3Nz5.protein.faa.gz
       vigan.Gyeongwon.gnm3.ann1.3Nz5.protein_primaryTranscript.faa.gz
 ```
-### TRANSCRIPTOME ASSEMBLY
+#### Transcriptome assembly
 ```
   Lupinus_angustifolius/
     P27255.tcp1.ycvS/
@@ -234,7 +239,7 @@ database loading and browsers):
       lupan.Unicrop.tcpt1.YVT4.Trinity.fna.gz
       original_readme.lupinexpress.txt
 ```
-### SOME CURATION PROTOCOLS AT LEGUMEINFO
+### CURATION PROTOCOLS
 Notes below describe procedures specifically at the data filesystem associated with legumeinfo.
 Presumably, similar practices would be used for other "federation member" repositories.
 
