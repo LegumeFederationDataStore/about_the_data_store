@@ -5,7 +5,7 @@ Metacontent and scripts relating to the static file repository of the Legume Fed
 Holds information pertaining to collection and display of metadata.
 
 ### private/
-Scripts and should be added here but not checked into GitHub.
+Scripts and prerelease data should be added here but the latter not checked into GitHub.
 
 ### private/scripts/
 Datastore scripts.
