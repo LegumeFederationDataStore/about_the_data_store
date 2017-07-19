@@ -205,8 +205,8 @@ database loading and browsers):
       tripr.MilvusB.gnm2.ann1.DFgp.annot.ahrd.txt.gz
       tripr.MilvusB.gnm2.ann1.DFgp.cds.fna.gz
       tripr.MilvusB.gnm2.ann1.DFgp.cds_primaryTranscript.fna.gz
-      tripr.MilvusB.gnm2.ann1.DFgp.gene_for_chado.gff.gz
-      tripr.MilvusB.gnm2.ann1.DFgp.gene_for_gbrowse.gff.gz
+      tripr.MilvusB.gnm2.ann1.DFgp.gene_for_chado.gff3.gz
+      tripr.MilvusB.gnm2.ann1.DFgp.gene_for_gbrowse.gff3.gz
       tripr.MilvusB.gnm2.ann1.DFgp.protein.faa.gz
       tripr.MilvusB.gnm2.ann1.DFgp.protein_primaryTranscript.faa.gz
 
@@ -216,7 +216,7 @@ database loading and browsers):
       vigan.Gyeongwon.gnm3.ann1.3Nz5.annot.ahrd.txt.gz
       vigan.Gyeongwon.gnm3.ann1.3Nz5.cds.fna.gz
       vigan.Gyeongwon.gnm3.ann1.3Nz5.cds_primaryTranscript.fna.gz
-      vigan.Gyeongwon.gnm3.ann1.3Nz5.gene.gff.gz
+      vigan.Gyeongwon.gnm3.ann1.3Nz5.gene.gff3.gz
       vigan.Gyeongwon.gnm3.ann1.3Nz5.protein.faa.gz
       vigan.Gyeongwon.gnm3.ann1.3Nz5.protein_primaryTranscript.faa.gz
 ```
