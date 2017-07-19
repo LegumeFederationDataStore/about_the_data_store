@@ -15,10 +15,10 @@ Return to the [metadata folder](.).
   - Organization by species, then by genotype and data/analysis type
 3. Borrow naming schemes from NCBI and Phytozome (but adapt in some places for clarity or 
     for other file types). Examples of similarities and differences:
-  - NCBI doesn't maintain _primaryTranscript.fa files. Adopt this convention from Phytozome.
+  - NCBI doesn't maintain _primaryTranscript.fna files. Adopt this convention from Phytozome.
   - NCBI uses a _genomic.fna suffix for genome assembly (as well as a fairly complex directory 
     hierarchy for assembly components and tiling path, etc.). We are using a hybrid naming 
-    system, with _pchr.fa for pseudochromosomes and _scaf.fa for scaffolds.
+    system, with _pchr.fna for pseudochromosomes and _scaf.fna for scaffolds.
   - Phytozome annotation names are versioned only per the assembly name, which doesn't 
     allow for the possibility of multiple annotation versions on an assembly.
 4. In cases where there are multiple analyses (assembly, then annotation), be explicit 
@@ -159,7 +159,7 @@ database loading and browsers):
 ```
   Transcriptome assembly files:
 ```
-    GENOTYPE.ANALYSIS#.KEY#.METHOD.fna.gz -- e.g. .ycvS.Trinity.ffn
+    GENOTYPE.ANALYSIS#.KEY#.METHOD.fna.gz -- e.g. .ycvS.Trinity.fna
 ```
   README files
 ```
