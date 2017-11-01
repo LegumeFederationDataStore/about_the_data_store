@@ -262,4 +262,11 @@ respective genomic data portals (GDPs). To that end, not every piece of genomic 
 a species needs to be housed in the repository. (There may be some instances, though, where
 extensive, multifaceted data sets are held for some species).
 
+### MISCELLANEOUS DATA STANDARDS
+This is a set of conventions and standards that we have agreed to adopt with respect to certain types 
+of data.
 
+- Peptides SHALL be given the same names and identifiers as the transcripts from which they were derived.
+This means, for example, that in the case of providers who have suffixed the names of transcripts with a
+".p" to discriminate the peptides derived from them, we will have slightly different naming within the 
+federation. 
