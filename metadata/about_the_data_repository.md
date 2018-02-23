@@ -13,8 +13,8 @@ Return to the [metadata folder](.).
     for other file types). Examples of similarities and differences:
   - NCBI doesn't maintain _primaryTranscript.fna files. Adopt this convention from Phytozome.
   - NCBI uses a _genomic.fna suffix for genome assembly (as well as a fairly complex directory 
-    hierarchy for assembly components and tiling path, etc.). We are using a hybrid naming 
-    system, with _pchr.fna for pseudochromosomes and _scaf.fna for scaffolds.
+    hierarchy for assembly components and tiling path, etc.). We use genome_main.fna.gz for
+    genome assemblies, gene_models_main.gff3.gz for annotations.
   - Phytozome annotation names are versioned only per the assembly name, which doesn't 
     allow for the possibility of multiple annotation versions on an assembly.
 4. In cases where there are multiple analyses (assembly, then annotation), be explicit 
