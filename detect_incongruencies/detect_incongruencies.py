@@ -8,7 +8,7 @@ import logging
 from incongruency_detector.Detector import Detector
 
 parser = argparse.ArgumentParser(description='''
-    Detect Incongruencies with LIS Data Store Standard
+    Detect and optionally Normalize Incongruencies with LIS Data Store Standard
 
     https://github.com/LegumeFederation/datastore/issues/23
 
@@ -26,10 +26,15 @@ help='''Path to genome tools''')
 parser.add_argument('--log_level', metavar = '<LOGLEVEL>', default='INFO',
 help='''Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL (default:INFO)''')
 
-parser.add_argument('--tidy', action='store_true',
-help='''Tidy gff file using:
+parser.add_argument('--normalize', action='store_true',
+help='''Normalizes provided files.
 
-    gt gff3 -sort -tidy -retainids input.gff3 > out.gff3
+    Incongruencies in FASTA will be corrected if the provided genome name
+    passes checks.
+    
+    The gff file will be tidied if it fails gff3 validation in gt:
+
+        gt gff3 -sort -tidy -retainids input.gff3 > out.gff3
 
 ''')
 
@@ -52,10 +57,10 @@ if __name__ == '__main__':
     genome = args.genome
     annotation = args.annotation
     gt_path = args.gt_path
-    tidy = args.tidy
-    targets = {'genome' : genome, 'annotation' : annotation,
-               'logger' : logger, 'gt_path' : gt_path}
-    optionals = {'tidy' : tidy}
-    detector = Detector(**targets)
-    detector.detect_incongruencies(**optionals)
+    normalize = args.normalize
+    initializers = {'genome' : genome, 'annotation' : annotation,
+                    'logger' : logger, 'gt_path' : gt_path,
+                    'normalize' : normalize}
+    detector = Detector(**initializers)
+    detector.detect_incongruencies()
 

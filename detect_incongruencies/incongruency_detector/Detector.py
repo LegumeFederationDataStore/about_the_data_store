@@ -5,6 +5,7 @@ import sys
 import logging
 import re
 import subprocess
+from Normalizer import Normalizer
 from file_helpers import check_file, return_filehandle
 
 
@@ -34,10 +35,16 @@ class Detector:
         self.genome = kwargs.get('genome')
         self.annotation = kwargs.get('annotation')
         self.gt_path = kwargs.get('gt_path')
+        self.normalize = kwargs.get('normalize')
         if self.annotation and not self.gt_path:
             logger.error('gt_path, /path/to/genome_tools must be provided')
             sys.exit(1)
-        self.gt_path = os.path.abspath(self.gt_path)
+        if self.gt_path:
+            self.gt_path = os.path.abspath(self.gt_path)
+        if self.normalize:
+            self.normalizer = Normalizer(**kwargs)
+        else:
+            self.normalizer = None
         self.fasta_ids = {}
         self.genome_attributes = {'filename': '', 'version': '',
                                   'prefix': '', 'type': '', 'build': '',
@@ -75,7 +82,7 @@ class Detector:
             logger.error('gnm version must be integer not {}'.format(gnm_v))
             sys.exit(1)
         if not attr[5] == 'fna':  # should be fna type
-            logger.error('File should be fna not {}'.format(attr[6]))
+            logger.error('File should be fna not {}'.format(attr[5]))
             sys.exit(1)
         if not attr[6] == 'gz':  # should be gzip compressed
             logger.error('Last field should be gz, not {}'.format(attr[6]))
@@ -139,6 +146,7 @@ class Detector:
         true_header = '.'.join(attr[:3])
         fh = return_filehandle(fasta)  # get file handle, text/gz
         re_header = re.compile("^>(\S+)\s*(.*)")  # grab header and description
+        passed = True
         with fh as gopen:
             for line in gopen:
                 line = line.rstrip()
@@ -162,6 +170,8 @@ class Detector:
                         logger.warning(('Inconsistency {} '.format(hid) +
                                         'Should be {}'.format(standard_header))
                                       )
+                        passed = False
+        return passed
 
     def check_gff3_seqid(self, seqid):
         '''Confirms that column 1 "seqid" exists in genome_main if provided'''
@@ -236,30 +246,6 @@ class Detector:
         logger.debug(exit_val)
         return exit_val
 
-    def tidy_gff3(self, gff):
-        '''Performs gt gff -sort -tidy as parameterized by:
-
-           https://github.com/genometools/genometools/wiki/speck-User-manual
-        '''
-        logger = self.logger
-        gt_path = self.gt_path
-        gff = os.path.basename(gff)
-        gt_report = './{}_gt_gff3_tidy_report.txt'.format(gff)
-        tidy_out = './{}.tidy'.format(gff)
-        gt_cmd = ('{}/gt gff3 -sort -tidy -retainids -force '.format(gt_path) +
-                  '-o {} -gzip {} 2> {}'.format(tidy_out, gff, gt_report))
-        logger.debug(gt_cmd)
-        exit_val = subprocess.call(gt_cmd, shell=True)
-        if exit_val:
-            logger.error('Exit value of gt gff3 tidy !=0: {}'.format(exit_val))
-            sys.exit(1)
-        tidy_out = tidy_out + '.gz'
-        exit_val = self.check_gff3(tidy_out)
-        if exit_val:
-            logger.error('Tidy failed validation!')
-            sys.exit(1)
-        logger.debug(exit_val)
-
     def parse_filenames(self, f):
         '''parse attributes of filenames according to
 
@@ -279,7 +265,8 @@ class Detector:
                                                                    file_name))
             self.check_genome_main(file_attr)  # file naming is correct
             logger.info('Filename checks out.  Checking reference headers...')
-            self.check_fasta(f, file_attr)  # headers follow standard
+            passed = self.check_fasta(f, file_attr)  # headers follow standard
+            return passed
         if file_attr[-3] == 'gene_models_main':  # position of type
             logger.info('{} looks like gene_models_main, processing...'.format(
                                                                    file_name))
@@ -294,14 +281,17 @@ class Detector:
         logger = self.logger
         genome = self.genome
         annotation = self.annotation
-        tidy = kwargs.get('tidy')
+        normalizer = self.normalizer
         if genome:
             logger.info('Genome will be checked...')
             genome = os.path.abspath(genome)
             if not check_file(genome):
                 logger.error('Could not find {}'.format(genome))
                 sys.exit(1)
-            self.parse_filenames(genome)
+            passed = self.parse_filenames(genome)
+            if not passed and normalizer:
+                logger.info('Normalizing {}'.format(genome))
+                normalizer.normalize_genome_main(genome)
         if annotation:
             annotation = os.path.abspath(annotation)
             if not check_file(annotation):
@@ -310,8 +300,8 @@ class Detector:
             exit_val = self.parse_filenames(annotation)  # gt exit value
             if exit_val:
                 logger.warning('{} Failed gff3validator'.format(annotation))
-            if tidy and exit_val:  # gt said it wasn't clean, tidy specified
+            if normalizer and exit_val:  # gt said it wasn't clean, tidy
                 logger.info('tiding gff3 file {}'.format(annotation))
-                self.tidy_gff3(annotation)
+                normalizer.tidy_gff3(annotation)
 #         logger.info('Collecting report...') #  implement reporting at end
         logger.info('DONE')
