@@ -1,9 +1,5 @@
 ## DESCRIPTION OF DATA ORGANIZATION AND METADATA IN THE LEGUME FEDERATION PRIMARY REPOSITORY AND FEDERATION SITES
 
-Steven Cannon
-Revision: 2017-07-19
-
-
 Return to the [metadata folder](.).
 
 
@@ -17,8 +13,8 @@ Return to the [metadata folder](.).
     for other file types). Examples of similarities and differences:
   - NCBI doesn't maintain _primaryTranscript.fna files. Adopt this convention from Phytozome.
   - NCBI uses a _genomic.fna suffix for genome assembly (as well as a fairly complex directory 
-    hierarchy for assembly components and tiling path, etc.). We are using a hybrid naming 
-    system, with _pchr.fna for pseudochromosomes and _scaf.fna for scaffolds.
+    hierarchy for assembly components and tiling path, etc.). We use genome_main.fna.gz for
+    genome assemblies, gene_models_main.gff3.gz for annotations.
   - Phytozome annotation names are versioned only per the assembly name, which doesn't 
     allow for the possibility of multiple annotation versions on an assembly.
 4. In cases where there are multiple analyses (assembly, then annotation), be explicit 
@@ -71,6 +67,11 @@ The basic, simple concepts of federated repositories are:
       - accession or genotype name (e.g. `A17_HM341` or MilvusB
       - a version, adjacent to the data-type abbreviation (e.g. gnm2 for genome assembly
         version 2.0, or gnm1.ann1 for genome assembly version 1, annotation version 1)
+  - Directories containing dataset files should have md5 checksum files using the standard file
+    naming prefixes associated with the directory and using an md5sum suffix. The contents should
+    be in the format 
+    <checksum> <filename>
+    allowing validation as (e.g. on a Linux system): md5sum -c lupan.Tanjil.gnm1.ann1.nnV9.md5sum
 
 
 ### DIRECTORY STRUCTURE AND NAMING
@@ -125,6 +126,7 @@ Principles in the file naming are:
   - md - README files
   - tsv - ascii table file
   - txt - ascii files other than READMEs
+  - md5sum - md5 checksum file for contents of folders
 
 Within the GENOTYPE.ANALYSIS#/ directories, files have this format:
 gensp.GENOTYPE.ANALYSIS#.KEY#.file_type.ext.gz
@@ -174,7 +176,9 @@ database loading and browsers):
   Lupinus_angustifolius/
     Tanjil.gnm1.Qq0N/
       README.Qq0N.md
-      lupan.Tanjil.gnm1.Qq0N.pchr.fna.gz
+      lupan.Tanjil.gnm1.Qq0N.genome_main.fna.gz
+      lupan.Tanjil.gnm1.Qq0N.md5sum
+      lupan.Tanjil.gnm1.Qq0N.pschrom.fna.gz
       lupan.Tanjil.gnm1.Qq0N.scaf.fna.gz
       lupan.Tanjil.gnm1.Qq0N.scaf_unassigned.fna.gz
       original_readme.lupinexpress.txt
@@ -195,10 +199,19 @@ database loading and browsers):
   Lupinus_angustifolius/
     Tanjil.gnm1.ann1.nnV9/
       README.nnV9.md
-      lupan.Tanjil.gnm1.ann1.nnV9.cds.fna.gz
-      lupan.Tanjil.gnm1.ann1.nnV9.protein.fna.gz
+      lupan.Tanjil.gnm1.ann1.nnV9.cds_all.fna.gz
+      lupan.Tanjil.gnm1.ann1.nnV9.gene_models_main.gff3.gz
+      lupan.Tanjil.gnm1.ann1.nnV9.genes_all.gff3.gz
+      lupan.Tanjil.gnm1.ann1.nnV9.genes_pchr_plus_scaff.gff3.gz
+      lupan.Tanjil.gnm1.ann1.nnV9.md5sum
+      lupan.Tanjil.gnm1.ann1.nnV9.miRNA_all.gff3.gz
+      lupan.Tanjil.gnm1.ann1.nnV9.protein_all.faa.gz
+      lupan.Tanjil.gnm1.ann1.nnV9.rRNA_all.gff3.gz
+      lupan.Tanjil.gnm1.ann1.nnV9.scaffolds_in_pchr.gff3.gz
+      lupan.Tanjil.gnm1.ann1.nnV9.snRNA_all.gff3.gz
+      lupan.Tanjil.gnm1.ann1.nnV9.tRNA_all.gff3.gz
       original_readme.lupinexpress.txt
-
+  
   Trifolium_pratense/
     MilvusB.gnm2.ann1.DFgp/
       README.DFgp.md
@@ -262,4 +275,11 @@ respective genomic data portals (GDPs). To that end, not every piece of genomic 
 a species needs to be housed in the repository. (There may be some instances, though, where
 extensive, multifaceted data sets are held for some species).
 
+### MISCELLANEOUS DATA STANDARDS
+This is a set of conventions and standards that we have agreed to adopt with respect to certain types 
+of data.
 
+- Peptides SHALL be given the same names and identifiers as the transcripts from which they were derived.
+This means, for example, that in the case of providers who have suffixed the names of transcripts with a
+".p" to discriminate the peptides derived from them, we will have slightly different naming within the 
+federation. 
