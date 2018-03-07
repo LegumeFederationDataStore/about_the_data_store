@@ -5,6 +5,8 @@ import sys
 import logging
 import re
 import subprocess
+import hashlib
+from glob import glob
 from Normalizer import Normalizer
 from file_helpers import check_file, return_filehandle
 
@@ -34,6 +36,7 @@ class Detector:
             self.logger = kwargs.get('logger')
         self.genome = kwargs.get('genome')
         self.annotation = kwargs.get('annotation')
+        self.directory = kwargs.get('directory')
         self.gt_path = kwargs.get('gt_path')
         self.normalize = kwargs.get('normalize')
         if self.annotation and not self.gt_path:
@@ -143,6 +146,7 @@ class Detector:
         '''
         logger = self.logger
         f_ids = self.fasta_ids
+        f_ids = {}
         true_header = '.'.join(attr[:3])
         fh = return_filehandle(fasta)  # get file handle, text/gz
         re_header = re.compile("^>(\S+)\s*(.*)")  # grab header and description
@@ -237,8 +241,8 @@ class Detector:
         gt_path = self.gt_path
         logger.info('checking gff3 seqids and attributes...')
         self.check_seqid_attributes(gff)
-        gff = os.path.basename(gff)
-        gt_report = './{}_gt_gff3validator_report.txt'.format(gff)
+        gff_name = os.path.basename(gff)
+        gt_report = './{}_gt_gff3validator_report.txt'.format(gff_name)
         gt_cmd = '({}/gt gff3validator {} 2>&1) > {}'.format(gt_path, gff,
                                                              gt_report)
         logger.debug(gt_cmd)
@@ -275,33 +279,201 @@ class Detector:
             exit_val = self.check_gff3(f)  # gff follows standard
             return exit_val
 
+    def parse_checksum(self, md5_file, check_me):
+        '''Get md5 checksum for file and compare to expected'''
+        logger = self.logger
+        fh = return_filehandle(md5_file)
+        hash_md5 = hashlib.md5()
+        check_sum_target = ''
+        switch = 0
+        with fh as copen:
+            for line in copen:
+                line = line.rstrip()
+                if not line or line.startswith('#'):
+                    continue
+                fields = line.split(' ')
+                check_sum = fields[0]
+                filename = fields[1]
+                if not check_sum and filename:
+                    logger.error('Could not find sum and name for {}'.format(
+                                                                        line))
+                if filename == os.path.basename(check_me):
+                    logger.info('Checksum found for {}'.format(filename))
+                    check_sum_target = check_sum
+                    switch = 1
+        if not switch:
+            logger.error('Could not find checksum for {}'.format(check_me))
+            sys.exit(1)
+        with open(check_me, "rb") as copen:
+            for chunk in iter(lambda: copen.read(4096), b""):  # 4096 buffer
+                hash_md5.update(chunk)
+        target_sum = hash_md5.hexdigest()  # get sum
+        logger.debug(target_sum)
+        logger.debug(check_sum_target)
+        if target_sum != check_sum_target:  # compare sums
+            logger.error(('Checksum for file {} {} '.format(check_me, 
+                                                           target_sum) + 
+                          'did not match {}'.format(check_sum_target)))
+            sys.exit(1)
+        logger.info('Checksums checked out, moving on...')
+
+    def check_dir_type(self, directory):
+        '''Check the directory type and perform workflow based on type'''
+        main_file = ''
+        file_type = ''
+        logger = self.logger
+        dir_name = os.path.basename(directory)  # get dirname only
+        dir_type = dir_name.split('.')[-2]  # get gnm, ann, etc
+        glob_str = '{}/*'.format(directory)
+        if dir_type.startswith('gnm'):
+            logger.info('This is a genome directory.  Looking for genome_main')
+            glob_str += 'genome_main.fna.gz'  # glob main fasta
+            fasta = glob(glob_str)
+            if len(fasta) != 1:
+                logger.warning('Multiple/0 genome_main found {}'.format(fasta))
+                return False
+            main_file = fasta[0]
+            logger.info('Found {}'.format(main_file))
+            file_type = 'genome'  # set type for return
+        elif dir_type.startswith('ann'):
+            logger.info(('This is an annotation directory. ' +  
+                         'Looking for gene_models_main'))
+            glob_str += 'gene_models_main.gff3.gz'  # glob main gff
+            gff = glob(glob_str)
+            if len(gff) != 1:
+                logger.warning('Multiple/0 gene_models_main for {}'.format(gff))
+                return False
+            main_file = gff[0]
+            logger.info('Found {}'.format(main_file))
+            file_type = 'annotation'  # set type for return
+        else:
+            logger.warning(('Format {} not recognized, '.format(dir_type) +
+                          'should be ann or gnm.  Skipping...'))
+            return False
+        logger.info('Searching for checksum...')
+        check_glob = '{}/CHECKSUM.*.md5'.format(directory)
+        check_sum = glob(check_glob)
+        if len(check_sum) != 1:
+            logger.warning('Multiple/0 checksums for {}'.format(main_file))
+            return False
+        check_sum_file = check_sum[0]
+        self.parse_checksum(check_sum_file, main_file)
+        return (main_file, file_type)
+
+    def run_genome(self, genome):
+        '''Run genome workflow'''
+        logger = self.logger
+        normalizer = self.normalizer
+        logger.info('Genome {} will be checked...'.format(genome))
+        genome = os.path.abspath(genome)
+        if not check_file(genome):
+            logger.error('Could not find {}'.format(genome))
+            sys.exit(1)
+        passed = self.parse_filenames(genome)
+        if not passed and normalizer:
+            logger.info('Normalizing {}'.format(genome))
+            normalizer.normalize_genome_main(genome)
+
+    def run_annotation(self, annotation):
+        '''Run annotation workflow'''
+        logger = self.logger
+        normalizer = self.normalizer
+        annotation = os.path.abspath(annotation)
+        logger.info('Annotation {} will be checked...'.format(annotation))
+        if not check_file(annotation):
+            logger.error('Could not find {}'.format(annotation))
+            sys.exit(1)
+        exit_val = self.parse_filenames(annotation)  # gt exit value
+        if exit_val:
+            logger.warning('{} Failed gff3validator'.format(annotation))
+        if normalizer and exit_val:  # gt said it wasn't clean, tidy
+            logger.info('tiding gff3 file {}'.format(annotation))
+            normalizer.tidy_gff3(annotation)
+
+    def get_files(self, directory):
+        '''Get all related files, start with gnm return list of dicts
+        
+           for processing
+        '''
+        logger = self.logger
+        gnm_glob = '{}/*/*.gnm[0-9]*'.format(directory)
+        gnm_list = glob(gnm_glob)
+        related_files = []
+        logger.info('Globbing files to find main elements...')
+        for g in gnm_list:
+            if g.endswith('genome_main.fna.gz'):  # add more checks, transcriptome etc
+#            elif g.endswith('transcriptome_main.fna.gz')  # others
+                logger.info('Found genome {}'.format(g))
+                filename = os.path.basename(g)
+                prefix = '.'.join(filename.split('.')[:3])
+                ann_glob = '{}/*/{}.ann[0-9]*gene_models_main.gff3.gz'.format(
+                                                                    directory,
+                                                                    prefix)
+                anns = glob(ann_glob)
+                if not anns:
+                    logger.debug('No genemodels main for {}'.format(filename))
+                    anns = None
+                elif len(anns) > 1:
+        #            logger.warning('Multiple gene models fround for {}'.format(
+        #                                                             filename))
+        #            continue
+                    t_anns = []
+                    for a in anns:
+                        t_anns.append(os.path.dirname(a))
+                    anns = t_anns
+                else:
+                    logger.info('Found gene_models {}'.format(anns[0]))
+                    anns = [os.path.dirname(anns[0])]
+                files_obj = {'genome': os.path.dirname(g), 
+                             'annotation': anns}
+                related_files.append(files_obj)
+            else:
+                logger.debug('File {} not cannonical will not check'.format(g))
+                continue
+        return related_files
+
     def detect_incongruencies(self, **kwargs):
         '''Initiate and control workflow'''
         fh = ''
         logger = self.logger
         genome = self.genome
         annotation = self.annotation
-        normalizer = self.normalizer
+        directory = self.directory
+        if directory:
+            directory = os.path.abspath(directory)
+            directories = self.get_files(directory)  # get object for loop
+            logger.debug(directories)  # see what is going into loop
+            for d in directories:
+                genome = d.get('genome')  # get and check
+                annotation = d.get('annotation') # get and check
+                logger.info('Checking Genome:{} and Annotation:{}'.format(
+                                                                 genome,
+                                                                 annotation))
+                if genome:
+                    main_file, file_type = self.check_dir_type(genome)
+                    if file_type == 'genome':
+                        self.run_genome(main_file)
+                    else:
+                        logger.warning('Assembly does not look like a genome')
+                        continue
+                if annotation:
+                    for a in annotation:
+                        main_file, file_type = self.check_dir_type(a)
+                        if file_type == 'annotation':
+                            self.run_annotation(main_file)
+                        else:
+                            logger.warning('Annotation looks odd...')
+                            continue
+#                else:
+#                    logger.warning('Did not recognize type {}'.format(
+#                                                                 file_type))
+#                    continue
+                logger.info('Done Checking, Proceeding to next target...')
+            return 
         if genome:
-            logger.info('Genome will be checked...')
-            genome = os.path.abspath(genome)
-            if not check_file(genome):
-                logger.error('Could not find {}'.format(genome))
-                sys.exit(1)
-            passed = self.parse_filenames(genome)
-            if not passed and normalizer:
-                logger.info('Normalizing {}'.format(genome))
-                normalizer.normalize_genome_main(genome)
+            self.run_genome(genome)
         if annotation:
-            annotation = os.path.abspath(annotation)
-            if not check_file(annotation):
-                logger.error('Could not find {}'.format(annotation))
-                sys.exit(1)
-            exit_val = self.parse_filenames(annotation)  # gt exit value
-            if exit_val:
-                logger.warning('{} Failed gff3validator'.format(annotation))
-            if normalizer and exit_val:  # gt said it wasn't clean, tidy
-                logger.info('tiding gff3 file {}'.format(annotation))
-                normalizer.tidy_gff3(annotation)
+            self.run_annotation(annotation)
+            
 #         logger.info('Collecting report...') #  implement reporting at end
         logger.info('DONE')

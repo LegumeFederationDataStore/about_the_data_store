@@ -20,8 +20,15 @@ help='''Genome to check''')
 parser.add_argument('--annotation', metavar = '</path/to/my/annotation.gff>',
 help='''Annotation to check''')
 
+parser.add_argument('--directory', metavar = '</path/to/my/data_dir>',
+help='''Directory to check.  Will auto detect type.''')
+
 parser.add_argument('--gt_path', metavar = '</path/to/my/genome_tools/>',
-help='''Path to genome tools''')
+help='''Path to genome tools''', required=True)
+
+parser.add_argument('--log_file', metavar = '<FILE>', 
+default='./detect_incongruencies.log',
+help='''File to write log to.  (default:./detect_incongruencies.log)''')
 
 parser.add_argument('--log_level', metavar = '<LOGLEVEL>', default='INFO',
 help='''Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL (default:INFO)''')
@@ -41,12 +48,14 @@ help='''Normalizes provided files.
 parser._optionals.title = "Program Options"
 args = parser.parse_args()
 
+log_file = args.log_file
+
 log_level = getattr(logging, args.log_level.upper(), logging.INFO)
 msg_format = '%(asctime)s|%(name)s|[%(levelname)s]: %(message)s'
 logging.basicConfig(format=msg_format, datefmt='%m-%d %H:%M',
                     level=log_level)
 log_handler = logging.FileHandler(
-                       './detect_incongruencies.log', mode='w')
+                       log_file, mode='w')
 formatter = logging.Formatter(msg_format)
 log_handler.setFormatter(formatter)
 logger = logging.getLogger('detect_incongruencies')
@@ -56,11 +65,13 @@ logger.addHandler(log_handler)
 if __name__ == '__main__':
     genome = args.genome
     annotation = args.annotation
+    directory = args.directory
     gt_path = args.gt_path
     normalize = args.normalize
-    initializers = {'genome' : genome, 'annotation' : annotation,
-                    'logger' : logger, 'gt_path' : gt_path,
-                    'normalize' : normalize}
+    initializers = {'genome': genome, 'annotation': annotation,
+                    'directory': directory,
+                    'logger': logger, 'gt_path': gt_path,
+                    'normalize': normalize}
     detector = Detector(**initializers)
     detector.detect_incongruencies()
 
