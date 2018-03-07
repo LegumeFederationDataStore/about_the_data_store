@@ -145,8 +145,8 @@ class Detector:
            https://github.com/LegumeFederation/datastore/issues/23
         '''
         logger = self.logger
+        self.fasta_ids = {}
         f_ids = self.fasta_ids
-        f_ids = {}
         true_header = '.'.join(attr[:3])
         fh = return_filehandle(fasta)  # get file handle, text/gz
         re_header = re.compile("^>(\S+)\s*(.*)")  # grab header and description
@@ -207,6 +207,8 @@ class Detector:
                 columns = line.split('\t')  # get gff3 fields
                 seqid = columns[0]  # seqid according to the spec
                 seqid = seqid.rstrip()
+                logger.debug(line)
+                logger.debug(seqid)
                 if self.fasta_ids:  # if genome_main make sure seqids exist
                     if not self.check_gff3_seqid(seqid):  # fasta header check
                         logger.debug(seqid)
@@ -348,7 +350,7 @@ class Detector:
             file_type = 'annotation'  # set type for return
         else:
             logger.warning(('Format {} not recognized, '.format(dir_type) +
-                          'should be ann or gnm.  Skipping...'))
+                          'should be ann or gnm.'))
             return False
         logger.info('Searching for checksum...')
         check_glob = '{}/CHECKSUM.*.md5'.format(directory)
@@ -406,7 +408,7 @@ class Detector:
                 logger.info('Found genome {}'.format(g))
                 filename = os.path.basename(g)
                 prefix = '.'.join(filename.split('.')[:3])
-                ann_glob = '{}/*/{}.ann[0-9]*gene_models_main.gff3.gz'.format(
+                ann_glob = '{}/*/self.check_dir_type(directory)'.format(
                                                                     directory,
                                                                     prefix)
                 anns = glob(ann_glob)
@@ -439,9 +441,52 @@ class Detector:
         genome = self.genome
         annotation = self.annotation
         directory = self.directory
-        if directory:
+        if directory:  # if the user provided a directory check and find files
             directory = os.path.abspath(directory)
-            directories = self.get_files(directory)  # get object for loop
+            directories = []  # list to send to check methods
+            dir_check = self.check_dir_type(directory)
+            if not dir_check:  # maybe dir is organism dir
+                logger.info('Directory is not a type.  Checking if organism.')
+                directories = self.get_files(directory)  # get object for loop
+            else:
+                dir_obj = {'genome': '', 'annotation': []}  # object to append
+                parent_dir = os.path.dirname(directory)
+                target_dir = os.path.basename(directory)
+                prefix = '.'.join(target_dir.split('.')[:2])
+                if dir_check[1] == 'genome':
+                    dir_obj['genome'] = directory
+                    anno_glob = ('{}/{}.ann[0-9]*/'.format(parent_dir, prefix)+ 
+                                 '*gene_models_main.gff3.gz')
+                    anns = glob(anno_glob)
+                    if not anns:
+                        logger.debug('No annotation found for {}'.format(
+                                                                    directory))
+                    else:
+                        annotations = []
+                        for a in anns:
+                            annotations.append(os.path.dirname(a))  # list
+                        dir_obj['annotation'] = annotations
+                        directories.append(dir_obj)  # append object
+                elif dir_check[1] == 'annotation': 
+                    geno_glob = ('{}/{}*/'.format(parent_dir, prefix) + 
+                                 '*genome_main.fna.gz')
+                    genomes = glob(geno_glob)
+                    if not genomes:  # all annotations require a genome
+                        logger.error('No genomes found for {}'.format(
+                                                                    directory))
+                        sys.exit(1)
+                    elif len(genomes) > 1:  # should only be one genome
+                        logger.error('Multiple genomes found for {}'.format(
+                                                                    directory))
+                        sys.exit(1)
+                    else:
+                        dir_obj['genome'] = os.path.dirname(genomes[0])
+                        dir_obj['annotation'] = [directory]
+                        directories.append(dir_obj)
+                else:
+                    logger.error('Directory {} is not cannonical'.format(
+                                                                    directory))
+                    sys.exit(1)
             logger.debug(directories)  # see what is going into loop
             for d in directories:
                 genome = d.get('genome')  # get and check
@@ -464,6 +509,8 @@ class Detector:
                         else:
                             logger.warning('Annotation looks odd...')
                             continue
+                if not (genome and annotation):
+                    logger.warning('No Files found for {}'.format(d))
 #                else:
 #                    logger.warning('Did not recognize type {}'.format(
 #                                                                 file_type))
