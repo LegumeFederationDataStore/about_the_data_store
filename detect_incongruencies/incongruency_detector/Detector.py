@@ -443,6 +443,9 @@ class Detector:
         directory = self.directory
         if directory:  # if the user provided a directory check and find files
             directory = os.path.abspath(directory)
+            if not os.path.isdir(directory):
+                logger.error('could not find {}'.format(directory))
+                sys.exit(1)
             directories = []  # list to send to check methods
             dir_check = self.check_dir_type(directory)
             if not dir_check:  # maybe dir is organism dir
