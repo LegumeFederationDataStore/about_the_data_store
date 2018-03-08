@@ -319,12 +319,15 @@ class Detector:
             sys.exit(1)
         logger.info('Checksums checked out, moving on...')
 
-    def check_dir_type(self, directory):
+    def check_dir_type(self, directory, check_sum):
         '''Check the directory type and perform workflow based on type'''
         main_file = ''
         file_type = ''
         logger = self.logger
         dir_name = os.path.basename(directory)  # get dirname only
+        dir_test = len(dir_name.split('.'))
+        if dir_test < 3:
+            return False
         dir_type = dir_name.split('.')[-2]  # get gnm, ann, etc
         glob_str = '{}/*'.format(directory)
         if dir_type.startswith('gnm'):
@@ -352,14 +355,15 @@ class Detector:
             logger.warning(('Format {} not recognized, '.format(dir_type) +
                           'should be ann or gnm.'))
             return False
-        logger.info('Searching for checksum...')
-        check_glob = '{}/CHECKSUM.*.md5'.format(directory)
-        check_sum = glob(check_glob)
-        if len(check_sum) != 1:
-            logger.warning('Multiple/0 checksums for {}'.format(main_file))
-            return False
-        check_sum_file = check_sum[0]
-        self.parse_checksum(check_sum_file, main_file)
+        if check_sum:
+            logger.info('Searching for checksum...')
+            check_glob = '{}/CHECKSUM.*.md5'.format(directory)
+            check_sum = glob(check_glob)
+            if len(check_sum) != 1:
+                logger.warning('Multiple/0 checksums for {}'.format(main_file))
+                return False
+            check_sum_file = check_sum[0]
+            self.parse_checksum(check_sum_file, main_file)
         return (main_file, file_type)
 
     def run_genome(self, genome):
@@ -408,7 +412,7 @@ class Detector:
                 logger.info('Found genome {}'.format(g))
                 filename = os.path.basename(g)
                 prefix = '.'.join(filename.split('.')[:3])
-                ann_glob = '{}/*/self.check_dir_type(directory)'.format(
+                ann_glob = '{}/*/{}.ann[0-9]*gene_models_main.gff3.gz'.format(
                                                                     directory,
                                                                     prefix)
                 anns = glob(ann_glob)
@@ -447,7 +451,7 @@ class Detector:
                 logger.error('could not find {}'.format(directory))
                 sys.exit(1)
             directories = []  # list to send to check methods
-            dir_check = self.check_dir_type(directory)
+            dir_check = self.check_dir_type(directory, False)
             if not dir_check:  # maybe dir is organism dir
                 logger.info('Directory is not a type.  Checking if organism.')
                 directories = self.get_files(directory)  # get object for loop
@@ -464,6 +468,7 @@ class Detector:
                     if not anns:
                         logger.debug('No annotation found for {}'.format(
                                                                     directory))
+                        directories.append(dir_obj)  # append object
                     else:
                         annotations = []
                         for a in anns:
@@ -498,7 +503,7 @@ class Detector:
                                                                  genome,
                                                                  annotation))
                 if genome:
-                    main_file, file_type = self.check_dir_type(genome)
+                    main_file, file_type = self.check_dir_type(genome, True)
                     if file_type == 'genome':
                         self.run_genome(main_file)
                     else:
@@ -506,20 +511,21 @@ class Detector:
                         continue
                 if annotation:
                     for a in annotation:
-                        main_file, file_type = self.check_dir_type(a)
+                        main_file, file_type = self.check_dir_type(a, True)
                         if file_type == 'annotation':
                             self.run_annotation(main_file)
                         else:
                             logger.warning('Annotation looks odd...')
                             continue
-                if not (genome and annotation):
+                if not (genome or annotation):
                     logger.warning('No Files found for {}'.format(d))
 #                else:
 #                    logger.warning('Did not recognize type {}'.format(
 #                                                                 file_type))
 #                    continue
                 logger.info('Done Checking, Proceeding to next target...')
-            return 
+            logger.info('Done')
+            return True
         if genome:
             self.run_genome(genome)
         if annotation:

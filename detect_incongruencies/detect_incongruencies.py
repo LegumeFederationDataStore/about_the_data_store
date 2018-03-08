@@ -21,7 +21,12 @@ parser.add_argument('--annotation', metavar = '</path/to/my/annotation.gff>',
 help='''Annotation to check''')
 
 parser.add_argument('--directory', metavar = '</path/to/my/data_dir>',
-help='''Directory to check.  Will auto detect type.''')
+help='''Directory to check.  Will auto detect type.
+
+If directory is an organism directory all gnm and ann under will be checked.
+
+If directory is a gnm or ann directory, the cooresponding files will be found and all will be checked.
+''')
 
 parser.add_argument('--gt_path', metavar = '</path/to/my/genome_tools/>',
 help='''Path to genome tools''', required=True)
@@ -36,12 +41,12 @@ help='''Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL (default:INFO)''')
 parser.add_argument('--normalize', action='store_true',
 help='''Normalizes provided files.
 
-    Incongruencies in FASTA will be corrected if the provided genome name
-    passes checks.
+Incongruencies in FASTA will be corrected if the provided genome name
+passes checks.
     
-    The gff file will be tidied if it fails gff3 validation in gt:
+The gff file will be tidied if it fails gff3 validation in gt:
 
-        gt gff3 -sort -tidy -retainids input.gff3 > out.gff3
+    gt gff3 -sort -tidy -retainids input.gff3 > out.gff3
 
 ''')
 
