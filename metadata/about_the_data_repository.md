@@ -1,6 +1,7 @@
 ## DESCRIPTION OF DATA ORGANIZATION AND METADATA IN THE LEGUME FEDERATION PRIMARY REPOSITORY AND FEDERATION SITES
 
-Return to the [metadata folder](links to Data Store "metadata" directory).
+Return to the [metadata folder](.) (links to Data Store "metadata" directory).
+
 Note: the "live" version of this document is in GitHub, <a href="https://github.com/LegumeFederation/datastore/blob/master/metadata/about_the_data_repository.md">here</a>.
 
 ### OBJECTIVES AND PRINCIPLES 
