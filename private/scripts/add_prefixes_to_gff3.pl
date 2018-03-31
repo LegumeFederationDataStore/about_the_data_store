@@ -50,12 +50,18 @@ while (<>) {
         $id_lookup{$orig_id} = $new_id;
         s/ID=$orig_id/ID=$new_id/;
         if (/Parent=/) {
-            my ($parent_old_id) = /Parent=([^;]+)/;
-            my $parent_new_id = $id_lookup{$parent_old_id};
-            if (!defined $parent_new_id) {
-                die "could not find new id for Parent=$parent_old_id\n";
+            my ($parent_old_ids) = /Parent=([^;]+)/;
+            my @parent_old_ids = split /,/, $parent_old_ids;
+            my @parent_new_ids;
+            foreach my $parent_old_id (@parent_old_ids) {
+                my $parent_new_id = $id_lookup{$parent_old_id};
+                if (!defined $parent_new_id) {
+                    die "could not find new id for Parent=$parent_old_id\n";
+                }
+                push @parent_new_ids, $parent_new_id;
             }
-            s/Parent=$parent_old_id/Parent=$parent_new_id/;
+            my $parent_new_ids = join(",", @parent_new_ids);
+            s/Parent=$parent_old_ids/Parent=$parent_new_ids/;
         }
         if ($use_ID_as_base) {
                 s/Name=[^;]+/Name=$name/;
