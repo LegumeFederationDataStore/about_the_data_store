@@ -96,33 +96,6 @@ none
 <!--- Citation(s) for major pulication(s) describing this dataset --> 
 none
 
-#### File List
-<!--- List of files in the dataset, with brief description of each. Inset the list by two spaces, and wrap filenames in back-tics (`) to highlight the names and to avoid markdown interpretation of underscores in filenames. --> 
-```
-  #filename in this repository     description
-  test1.txt                        Some text
-  test2.txt                        Something completely different
-  test3.txt                        This one is really special
-```
-
-#### File Correspondence
-<!--- Table of original filenames and new filenames. Inset the list by two spaces, and wrap filenames with backtics in order to avoid interpretation of underscore characters. --> 
-```
-  #name in this repository     previous name
-  test1.txt                    final1.txt
-  test2.txt                    final2.txt
-  test3.txt                    final3.txt
-```
-
-#### File Checksum
-<!--- Table of file names and md5 hash. Tip: use md5 -r FILE* -->
-```
-  #name in this repository     md5
-  test1.txt                    b42d276ec0c4ac91dc2c8fd8d09ef572
-  test2.txt                    72ce04aeac1fc8bf5864bd75d18a08a0
-  test3.txt                    a7874df495020f7a4ffbaeeb3f90509e
-```
-
 #### File Transformation
 <!--- Free-text description of any modifications of files in this directory (or of a given file described by this metadata), relative to original files. May be supplemented by a "transformations" file that describes changes to files - ideally, as command-line executable statements that can re-play the transformation(s). --> 
 ```
@@ -130,4 +103,9 @@ none
   test1.txt                    none
   test2.txt                    none
   test3.txt                    none
+```
+
+#### Changes
+```
+  YEAR-MO-DAY changes
 ```
