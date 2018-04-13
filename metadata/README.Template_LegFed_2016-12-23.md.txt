@@ -37,7 +37,7 @@ none
 gensp
 
 #### Genotype
-<!--- Genotype name for this data, if applicable --> 
+<!--- Genotype name for this data, if applicable; value given SHOULD match that used in dataset name --> 
 none
 
 #### Description
@@ -45,7 +45,7 @@ none
 none
 
 #### Dataset DOI 
-<!--- DOI for this data set, if assigned; the value given should be resolvable from http://dx.doi.org/<Dataset DOI>; otherwise "none" --> 
+<!--- DOI for this data set, if assigned; the value given SHOULD be resolvable from http://dx.doi.org/<Dataset DOI>; otherwise "none" --> 
 none
 
 #### GenBank Accession
@@ -93,7 +93,7 @@ Open
 none
 
 #### Citations 
-<!--- Citation(s) for major pulication(s) describing this dataset --> 
+<!--- Citation(s) for major publication(s) describing this dataset --> 
 none
 
 #### File Transformation
