@@ -45,7 +45,7 @@ none
 none
 
 #### Dataset DOI 
-<!--- DOI for this data set, if assigned; otherwise "none" --> 
+<!--- DOI for this data set, if assigned; the value given should be resolvable from http://dx.doi.org/<Dataset DOI>; otherwise "none" --> 
 none
 
 #### GenBank Accession
