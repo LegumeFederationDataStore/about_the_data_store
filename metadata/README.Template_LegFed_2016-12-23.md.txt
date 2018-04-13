@@ -61,7 +61,7 @@ YYYY-MM-DD
 YYYY-MM-DD
 
 #### Publication DOI 
-<!--- DOI for primary publication, if assigned; otherwise "none" --> 
+<!--- DOI for primary publication, if assigned; the value given SHOULD be resolvable from http://dx.doi.org/<Publication DOI>; otherwise "none" --> 
 none
 
 #### Dataset Release Date
