@@ -335,26 +335,26 @@ class Detector:
         pub_doi_check = 0
         dataset_doi_check = 0
         fh = return_filehandle(readme)
-        logger.info('Checking README: {}'.format(readme))
+        logger.info('Checking README for DOIs: {}'.format(readme))
         with fh as ropen:
             for line in ropen:
                 line = line.rstrip()
                 if not line or line.startswith('<!--'): 
                     continue  # skip if line starts with comments or is blank
                 if line.startswith('#### Publication DOI'):  # get pub DOI
-                    pub_doi_check = 1
+                    pub_doi_check = 1  # on
                     continue
-                if line.startswith('#### Dataset DOI'):
-                    dataset_doi_check = 1
+                if line.startswith('#### Dataset DOI'):  # get dataset DOI
+                    dataset_doi_check = 1  # on
                     continue
                 if pub_doi_check:
-                    pub_doi_check = 0
+                    pub_doi_check = 0  # off
                     object_dois['publication_doi'] = line
                 if dataset_doi_check:
-                    dataset_doi_check = 0
+                    dataset_doi_check = 0 # off
                     object_dois['dataset_doi'] = line
         logger.debug(object_dois)
-        for d in object_dois:
+        for d in object_dois:  # search publication and dataset DOIs
             if object_dois[d].lower() == 'none':
                 continue
             logger.info('checking {}: {}'.format(d, object_dois[d]))
