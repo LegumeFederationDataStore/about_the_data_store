@@ -6,6 +6,8 @@ import logging
 import re
 import subprocess
 import hashlib
+import requests
+import json
 from glob import glob
 from Normalizer import Normalizer
 from file_helpers import check_file, return_filehandle
@@ -180,8 +182,10 @@ class Detector:
     def check_gff3_seqid(self, seqid):
         '''Confirms that column 1 "seqid" exists in genome_main if provided'''
         f_ids = self.fasta_ids  # fasta_ids generated from check_Reference
+        logger = self.logger
         if seqid not in f_ids:
             return False
+        logger.debug('seqid {} found in fasta'.format(seqid))
         return True
 
     def check_seqid_attributes(self, gff):
@@ -281,7 +285,7 @@ class Detector:
             exit_val = self.check_gff3(f)  # gff follows standard
             return exit_val
 
-    def parse_checksum(self, md5_file, check_me):
+    def validate_checksum(self, md5_file, check_me):
         '''Get md5 checksum for file and compare to expected'''
         logger = self.logger
         fh = return_filehandle(md5_file)
@@ -319,8 +323,62 @@ class Detector:
             sys.exit(1)
         logger.info('Checksums checked out, moving on...')
 
-    def check_dir_type(self, directory, check_sum):
-        '''Check the directory type and perform workflow based on type'''
+    def validate_doi(self, readme):
+        '''Parse README.<key>.md and get publication or dataset DOIs
+        
+           Uses http://www.doi.org/factsheets/DOIProxy.html#rest-api
+        '''
+        logger = self.logger
+        publication_doi = ''
+        dataset_doi = ''
+        object_dois = {}
+        pub_doi_check = 0
+        dataset_doi_check = 0
+        fh = return_filehandle(readme)
+        logger.info('Checking README: {}'.format(readme))
+        with fh as ropen:
+            for line in ropen:
+                line = line.rstrip()
+                if not line or line.startswith('<!--'): 
+                    continue  # skip if line starts with comments or is blank
+                if line.startswith('#### Publication DOI'):  # get pub DOI
+                    pub_doi_check = 1
+                    continue
+                if line.startswith('#### Dataset DOI'):
+                    dataset_doi_check = 1
+                    continue
+                if pub_doi_check:
+                    pub_doi_check = 0
+                    object_dois['publication_doi'] = line
+                if dataset_doi_check:
+                    dataset_doi_check = 0
+                    object_dois['dataset_doi'] = line
+        logger.debug(object_dois)
+        for d in object_dois:
+            if object_dois[d].lower() == 'none':
+                continue
+            logger.info('checking {}: {}'.format(d, object_dois[d]))
+            url = 'https://doi.org/api/handles/{}'.format(object_dois[d])
+            try:  # check DOI against API
+                response = requests.get(url)
+            except ConnectionError as e:  # if connection error try to CURL
+                logger.error('Exception for url {}: {}'.format(url, e))
+                raise
+            logger.debug(response)
+            doi_json = json.loads(response.text)
+            logger.debug(doi_json)
+            if doi_json.get('responseCode') == 1:
+                logger.info('DOI {}: {} Validated'.format(d, object_dois[d]))
+            else:
+                logger.error('DOI {}: {} INVALID'.format(d, object_dois[d]))
+
+    def check_dir_type(self, directory, check_sum, doi):
+        '''Check the type of directory and perform workflow based on type
+
+           current types are ann and gnm
+        
+           check_sum and doi are bools.
+        '''
         main_file = ''
         file_type = ''
         logger = self.logger
@@ -355,15 +413,23 @@ class Detector:
             logger.warning(('Format {} not recognized, '.format(dir_type) +
                           'should be ann or gnm.'))
             return False
-        if check_sum:
+        if check_sum:  # check checksums if True
             logger.info('Searching for checksum...')
             check_glob = '{}/CHECKSUM.*.md5'.format(directory)
-            check_sum = glob(check_glob)
-            if len(check_sum) != 1:
+            check_sum = glob(check_glob)  # get checksum file
+            if len(check_sum) != 1:  # There should be one checksum file
                 logger.warning('Multiple/0 checksums for {}'.format(main_file))
                 return False
             check_sum_file = check_sum[0]
-            self.parse_checksum(check_sum_file, main_file)
+            self.validate_checksum(check_sum_file, main_file)  # check checksum
+        if doi:  # check DOI if True and DOI found in README
+            logger.info('Searching for DOIs in this directory...')
+            check_readme = '{}/README.*.md'.format(directory)
+            readme = glob(check_readme)
+            if len(readme) != 1:  # There should be one readme
+                logger.warning('Multiple/0 readmes for {}'.format(main_file))
+                return False
+            self.validate_doi(readme[0])
         return (main_file, file_type)
 
     def run_genome(self, genome):
@@ -398,6 +464,8 @@ class Detector:
 
     def get_files(self, directory):
         '''Get all related files, start with gnm return list of dicts
+
+           currently checks for annotations after finding genome
         
            for processing
         '''
@@ -439,7 +507,12 @@ class Detector:
         return related_files
 
     def detect_incongruencies(self, **kwargs):
-        '''Initiate and control workflow'''
+        '''Initiate and control workflow
+        
+           Currently looks for genomes and annotations.
+
+           Can perform checks for cheksum validity and DOI checks
+        '''
         fh = ''
         logger = self.logger
         genome = self.genome
@@ -451,7 +524,7 @@ class Detector:
                 logger.error('could not find {}'.format(directory))
                 sys.exit(1)
             directories = []  # list to send to check methods
-            dir_check = self.check_dir_type(directory, False)
+            dir_check = self.check_dir_type(directory, False, False)
             if not dir_check:  # maybe dir is organism dir
                 logger.info('Directory is not a type.  Checking if organism.')
                 directories = self.get_files(directory)  # get object for loop
@@ -503,7 +576,8 @@ class Detector:
                                                                  genome,
                                                                  annotation))
                 if genome:
-                    main_file, file_type = self.check_dir_type(genome, True)
+                    main_file, file_type = self.check_dir_type(genome, True, 
+                                                               True)
                     if file_type == 'genome':
                         self.run_genome(main_file)
                     else:
@@ -511,7 +585,8 @@ class Detector:
                         continue
                 if annotation:
                     for a in annotation:
-                        main_file, file_type = self.check_dir_type(a, True)
+                        main_file, file_type = self.check_dir_type(a, True,
+                                                                   True)
                         if file_type == 'annotation':
                             self.run_annotation(main_file)
                         else:
