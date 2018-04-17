@@ -297,9 +297,12 @@ class Detector:
                 line = line.rstrip()
                 if not line or line.startswith('#'):
                     continue
-                fields = line.split(' ')
+                fields = line.split()
                 check_sum = fields[0]
                 filename = fields[1]
+                logger.debug('check_sum: {}, filename: {}'.format(
+                                                                  check_sum,
+                                                                  filename))
                 if not check_sum and filename:
                     logger.error('Could not find sum and name for {}'.format(
                                                                         line))
