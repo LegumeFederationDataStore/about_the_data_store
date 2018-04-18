@@ -103,3 +103,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# files to not-track at the Data Store
+private/
+_h5ai/
+
