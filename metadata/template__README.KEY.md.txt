@@ -109,6 +109,6 @@ none
 <!--- Free-text notes about changes to this data collection. 
 Begin each change note with a date string, e.g. 2018-03-23 -->
 ```
-  2018-03-23 Removed sections "File Correspondence", "File Checksum", "File List" (these now go in separate files). Added section "Changes".
+  2018-03-23 Removed sections "File Correspondence", "File Checksum", "File List" (these now go in separate files). Added section "Changes". 
 ```
 
