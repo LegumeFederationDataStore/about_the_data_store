@@ -1,0 +1,9 @@
+The Legume Federation registry is a simple hash file between unique keys and directory paths to data collections.
+The registry can be accessed here:
+
+https://docs.google.com/spreadsheets/d/1gp_I3fp6uLaL1D74w95IRjnsH7kHRCumaHLanlwZ7tk/edit?usp=sharing
+or http://bit.ly/LegFed_registry
+
+If you want edit access (if you are managing data files in a federation filesystem), 
+please request access via the Google document menu.
+
