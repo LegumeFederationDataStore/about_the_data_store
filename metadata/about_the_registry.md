@@ -2,7 +2,7 @@
 The Legume Federation registry is a simple table, showing correspondences between unique keys and the corresponding directory paths that contain data collections.
 
 The Data Store protocols are documented here: 
-  <a href="https://github.com/LegumeFederation/datastore/blob/master/metadata/about_the_data_repository.md">documentation for the Data Store here</a>.
+  <a href="https://github.com/LegumeFederation/datastore/blob/master/metadata/about_the_data_repository.md">documentation for the Data Store</a>.
 
 The registry can be accessed here: 
   http://bit.ly/LegFed_registry
