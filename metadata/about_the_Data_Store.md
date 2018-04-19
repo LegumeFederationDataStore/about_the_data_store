@@ -2,7 +2,7 @@
 
 Return to the <a href=".">metadata folder</a> (From the Data Store, links to Data Store "metadata" directory)
 
-Note: the "live" version of this document is in GitHub, <a href="https://github.com/LegumeFederation/datastore/blob/master/metadata/about_the_data_repository.md">here</a>.
+Note: the "live" version of this document is in GitHub, <a href="https://github.com/LegumeFederation/datastore/tree/master/metadata/">here</a>.
 
 ### OBJECTIVES AND PRINCIPLES 
 1. A clear system (for curators and users)
