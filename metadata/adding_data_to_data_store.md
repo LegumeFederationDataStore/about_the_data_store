@@ -75,22 +75,39 @@ Note the -r flag for the md5 command.
   md5 -r * > CHECKSUM.$KEY.md5
 ```
 
-### Update the CyVerse Data Store
-```
-  ipwd     # see your path at CyVerse
-  icd /iplant/home/shared/Legume_Federation     # cd into the LegFed directory at CyVerse
-  ils
-```
-  If the directory exists at CyVerse, then icd into the directory and just push the updated files to it.
-  If the directories don't exist, then recursively push the directory.
-  If the directories are wrong, then BLOW AWAY the CyVerse directories (CAREFULLY) and 
-  recursively push the correct ones.
+### Move the collection from public to private
+Move the directory from from public to private, e.g.
 ```
   DIR=MY_NEW_DIRECTORY
-  icd $DIR
+  mv /usr/local/www/data/private/Glycine_max/$DIR /usr/local/www/data/public/Glycine_max/$DIR
+```
+... and note the change in the status file in private/Species_dir/, e.g. 
+```
+  echo $'\n'"Moved Wm82.gnm2.met1.K8RT to public on 2018-04-19 by YOUR NAME"$'\n' \
+    >> private/Glycine_max/status.glyma.txt
+```
+
+### Update the CyVerse Data Store
+Change to the species directory where your new collection sits and then 
+also use the irods icommands to cd to the corresponding location at CyVerse:
+
+```
+  cd /usr/local/www/data/public/Glycine_max/
+  ipwd     # see your path at CyVerse
+  icd /iplant/home/shared/Legume_Federation/Glycine_max    # cd into the LegFed directory at CyVerse
+  ils
+```
+If the directory exists at CyVerse, then icd into the directory and just push the updated files to it.
+If the directories don't exist, then recursively push the directory.
+If the directories are wrong, then BLOW AWAY the CyVerse directories (CAREFULLY) and 
+recursively push the correct ones.
+
+```
+  DIR=MY_NEW_DIRECTORY
   ipwd
   ils
-  iput -rf $DIR    # copy files to remote location
+  iput -rf $DIR  # copy directory & files - assuming we are at the correct location locally and at CyVerse
   ils
+  ils $DIR
 ```
   
