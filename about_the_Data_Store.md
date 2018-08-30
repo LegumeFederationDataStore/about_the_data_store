@@ -2,7 +2,8 @@
 
 Return to the <a href=".">metadata folder</a> (From the Data Store, links to Data Store "metadata" directory)
 
-Note: the "live" version of this document is in GitHub, <a href="https://github.com/LegumeFederation/datastore/tree/master/metadata/">here</a>.
+Note: the "live" version of this document is in GitHub, 
+<a href="https://github.com/LegumeFederationDataStore/about_the_data_store">here</a>.
 
 ### OBJECTIVES AND PRINCIPLES 
 1. A clear system (for curators and users)
@@ -117,7 +118,7 @@ For the remaining prescribed metadata files, there should be a README file, two 
 
 ```
 There should be four metadata files in each directory:
-  - README.KEY#.md
+  - README.KEY#.yml
   - MANIFEST.KEY#.correspondence
   - MANIFEST.KEY#.descriptions
   - CHECKSUM.KEY#.md5
@@ -162,7 +163,7 @@ Principles in the file naming are:
   - faa - protein FASTA
   - fna - nucleotide FASTA
   - gff3 - GFF
-  - md - README files
+  - yml - README files
   - tsv - ascii table file
   - txt - ascii files other than READMEs
   - md5 - md5 checksum file for contents of folders
@@ -200,7 +201,7 @@ database loading and browsers):
 ```
   README files
 ```
-    README.KEY#.md  -- template-based README file for this repository, in markdown format
+    README.KEY#.yml  -- template-based README file for this repository, in yaml format
 ```
 
 ### EXAMPLES OF DIRECTORIES AND FILES:
@@ -210,9 +211,9 @@ database loading and browsers):
   Lupinus_angustifolius/
     Tanjil.gnm1.Qq0N/
       CHECKSUM.Qq0N.md5
-      MANIFEST.Qq0N.correspondence
-      MANIFEST.Qq0N.descriptions
-      README.Qq0N.md
+      MANIFEST.Qq0N.correspondence.yml
+      MANIFEST.Qq0N.descriptions.yml
+      README.Qq0N.yml
       lupan.Tanjil.gnm1.Qq0N.genome_main.fna.gz
       lupan.Tanjil.gnm1.Qq0N.scaffolds.fna.gz
       lupan.Tanjil.gnm1.Qq0N.scaffolds_unassigned.fna.gz
@@ -221,17 +222,17 @@ database loading and browsers):
   Trifolium_pratense/
     MilvusB.gnm2.gNmT/
       CHECKSUM.gNmT.md5
-      MANIFEST.gNmT.correspondence
-      MANIFEST.gNmT.descriptions
-      README.gNmT.md
+      MANIFEST.gNmT.correspondence.yml
+      MANIFEST.gNmT.descriptions.yml
+      README.gNmT.yml
       tripr.MilvusB.gnm2.gNmT.genome_main.fna.gz
 
   Vigna_angularis/
     Gyeongwon.gnm3.JyYC/
       CHECKSUM.JyYC.md5
-      MANIFEST.JyYC.correspondence
-      MANIFEST.JyYC.descriptions
-      README.JyYC.md
+      MANIFEST.JyYC.correspondence.yml
+      MANIFEST.JyYC.descriptions.yml
+      README.JyYC.yml
       vigan.Gyeongwon.gnm3.JyYC.genome_main.fna.gz
 ```
 
@@ -240,9 +241,9 @@ database loading and browsers):
   Lupinus_angustifolius/
     Tanjil.gnm1.ann1.nnV9/
       CHECKSUM.nnV9.md5
-      MANIFEST.nnV9.correspondence
-      MANIFEST.nnV9.descriptions
-      README.nnV9.md
+      MANIFEST.nnV9.correspondence.yml
+      MANIFEST.nnV9.descriptions.yml
+      README.nnV9.yml
       lupan.Tanjil.gnm1.ann1.nnV9.cds_all.fna.gz
       lupan.Tanjil.gnm1.ann1.nnV9.gene_models.gff3.gz
       lupan.Tanjil.gnm1.ann1.nnV9.gene_models_main.gff3.gz
@@ -258,9 +259,9 @@ database loading and browsers):
   Trifolium_pratense/
     MilvusB.gnm2.ann1.DFgp/
       CHECKSUM.DFgp.md5
-      MANIFEST.DFgp.correspondence
-      MANIFEST.DFgp.descriptions
-      README.DFgp.md
+      MANIFEST.DFgp.correspondence.yml
+      MANIFEST.DFgp.descriptions.yml
+      README.DFgp.yml
       tripr.MilvusB.gnm2.ann1.DFgp.cds.fna.gz
       tripr.MilvusB.gnm2.ann1.DFgp.cds_primaryTranscript.fna.gz
       tripr.MilvusB.gnm2.ann1.DFgp.gene_models_gbrowse.gff3.gz
@@ -272,9 +273,9 @@ database loading and browsers):
   Vigna_angularis/
     Gyeongwon.gnm3.ann1.3Nz5/
       CHECKSUM.3Nz5.md5
-      MANIFEST.3Nz5.correspondence
-      MANIFEST.3Nz5.descriptions
-      README.3Nz5.md
+      MANIFEST.3Nz5.correspondence.yml
+      MANIFEST.3Nz5.descriptions.yml
+      README.3Nz5.yml
       vigan.Gyeongwon.gnm3.ann1.3Nz5.cds.fna.gz
       vigan.Gyeongwon.gnm3.ann1.3Nz5.cds_primaryTranscript.fna.gz
       vigan.Gyeongwon.gnm3.ann1.3Nz5.gene_models_main.gff3.gz
@@ -287,9 +288,9 @@ database loading and browsers):
 ```
   Lupinus_angustifolius/
     P27255.tcp1.ycvS/
-    MANIFEST.ycvS.correspondence
-    MANIFEST.ycvS.descriptions
-    README.ycvS.md
+    MANIFEST.ycvS.correspondence.yml
+    MANIFEST.ycvS.descriptions.yml
+    README.ycvS.yml
     lupan.P27255.tcp1.ycvS.Trinity.fna.gz
     original_readme.lupinexpress.txt
 ```

@@ -327,7 +327,7 @@ class Detector:
         logger.info('Checksums checked out, moving on...')
 
     def validate_doi(self, readme):
-        '''Parse README.<key>.yml and get publication or dataset DOIs
+        '''Parse README.<key>.md and get publication or dataset DOIs
         
            Uses http://www.doi.org/factsheets/DOIProxy.html#rest-api
         '''
@@ -335,20 +335,27 @@ class Detector:
         publication_doi = ''
         dataset_doi = ''
         object_dois = {}
+        pub_doi_check = 0
+        dataset_doi_check = 0
         fh = return_filehandle(readme)
         logger.info('Checking README for DOIs: {}'.format(readme))
         with fh as ropen:
             for line in ropen:
                 line = line.rstrip()
-                #FIXME: see if yaml has a comment; or just rely on an actual yaml parser!
                 if not line or line.startswith('<!--'): 
                     continue  # skip if line starts with comments or is blank
-                if line.startswith('publication_doi'):  # get pub DOI
-                    object_dois['publication_doi'] = line.split(':')[1].lstrip()
+                if line.startswith('#### Publication DOI'):  # get pub DOI
+                    pub_doi_check = 1  # on
                     continue
-                if line.startswith('dataset_doi'):  # get dataset DOI
-                    object_dois['dataset_doi'] = line.split(':')[1].lstrip()
+                if line.startswith('#### Dataset DOI'):  # get dataset DOI
+                    dataset_doi_check = 1  # on
                     continue
+                if pub_doi_check:
+                    pub_doi_check = 0  # off
+                    object_dois['publication_doi'] = line
+                if dataset_doi_check:
+                    dataset_doi_check = 0 # off
+                    object_dois['dataset_doi'] = line
         logger.debug(object_dois)
         for d in object_dois:  # search publication and dataset DOIs
             if object_dois[d].lower() == 'none':
@@ -420,7 +427,7 @@ class Detector:
             self.validate_checksum(check_sum_file, main_file)  # check checksum
         if doi:  # check DOI if True and DOI found in README
             logger.info('Searching for DOIs in this directory...')
-            check_readme = '{}/README.*.yml'.format(directory)
+            check_readme = '{}/README.*.md'.format(directory)
             readme = glob(check_readme)
             if len(readme) != 1:  # There should be one readme
                 logger.warning('Multiple/0 readmes for {}'.format(main_file))
