@@ -9,54 +9,164 @@ import hashlib
 import requests
 import json
 from glob import glob
-from Normalizer import Normalizer
-from file_helpers import check_file, return_filehandle
-
+from .helper import check_file, return_filehandle
 
 class Detector:
     '''Class to detect datastore file incongruencies with
 
-       https://github.com/LegumeFederation/datastore/issues/23
+       https://github.com/LegumeFederation/datastore
     '''
-    def __init__(self, **kwargs):
-        '''setup logger or load one.  set genome and annotation.
-
-           set attributes and reporting
-        '''
-        if not kwargs.get('logger'):
-            msg_format = '%(asctime)s|%(name)s|[%(levelname)s]: %(message)s'
-            logging.basicConfig(format=msg_format, datefmt='%m-%d %H:%M',
-                                level=logging.DEBUG)
-            log_handler = logging.FileHandler(
-                                   './detect_incongruencies.log')
-            formatter = logging.Formatter(msg_format)
-            log_handler.setFormatter(formatter)
-            logger = logging.getLogger('detect_incongruencies')
-            logger.addHandler(log_handler)
-            self.logger = logger
-        else:
-            self.logger = kwargs.get('logger')
-        self.genome = kwargs.get('genome')
-        self.annotation = kwargs.get('annotation')
-        self.directory = kwargs.get('directory')
-        self.gt_path = kwargs.get('gt_path')
-        self.normalize = kwargs.get('normalize')
-        if self.annotation and not self.gt_path:
-            logger.error('gt_path, /path/to/genome_tools must be provided')
-            sys.exit(1)
-        if self.gt_path:
-            self.gt_path = os.path.abspath(self.gt_path)
-        if self.normalize:
-            self.normalizer = Normalizer(**kwargs)
-        else:
-            self.normalizer = None
+    def __init__(self, target, **kwargs):
+        '''Check for logger, check for gt'''
+        subprocess.check_call('gt -help', shell=True)  # check for gt in env
+        self.canonical_types = ['genome_main', 
+                                'gene_models_main', 
+                                'ADDMORESTUFF']  #  types for detector
+        self.canonical_parents = {'genome_main': None,
+                                  'gene_models_main': 'genome_main'}
+        self.log_level = kwargs.get('log_level', 'INFO')
+        self.log_file = kwargs.get('log_file', './incongruencies.log')
+        self.target_objects = []  # store all target pairings self.get_targets
         self.fasta_ids = {}
-        self.genome_attributes = {'filename': '', 'version': '',
-                                  'prefix': '', 'type': '', 'build': '',
-                                  'compression': ''}
-        self.incongruencies = {'Genome Name': [], 'Genome Headers': [],
-                               'Annotation Name': [], 'GFF File': []}
-        self.logger.info('Initialized Detector')
+        self.reporting = {}
+        self.target = os.path.abspath(target)
+        self.setup_logging()  # setup logging sets self.logger
+        logger = self.logger
+        self.get_target_type()  # sets self.target_name and self.target_type
+        if not self.target_type:  # target type returned False not recognized
+            logger.error('Target type not recognized for {}'.format(
+                                                                  self.target))
+            sys.exit(1)
+        logger.info('Target type looks like {}'.format(self.target_type))
+        self.get_targets()
+        for t in self.target_objects:  # for each object set validate
+            logger.info('{}'.format(t))
+        logger.info('Initialized Detector')
+
+    def setup_logging(self):
+        '''Return logger based on log_file and log_level'''
+        log_level = getattr(logging, self.log_level.upper(), logging.INFO)
+        msg_format = '%(asctime)s|%(name)s|[%(levelname)s]: %(message)s'
+        logging.basicConfig(format=msg_format, datefmt='%m-%d %H:%M',
+                            level=log_level)
+        log_handler = logging.FileHandler(self.log_file, mode='w')
+        formatter = logging.Formatter(msg_format)
+        log_handler.setFormatter(formatter)
+        logger = logging.getLogger('detect_incongruencies')
+        logger.addHandler(log_handler)
+        self.logger = logger
+
+    def get_target_type(self):
+        '''Determines what type of target this is, is it a file or directory?
+
+           if its a directory, is it an organism directory or a data directory?
+        '''
+        target_name = os.path.basename(self.target)
+        self.target_name = target_name
+        self.target_type = False
+        if target_name.endswith('.gz'):  # all datastore files end in .gz
+            self.target_type = 'file'
+        elif(len(target_name.split('_')) == 2 and \
+             len(target_name.split('.')) < 5):
+            self.target_type = 'organism_dir'  # will always be Genus_species
+        elif len(target_name.split('.')) >= 5:  # standard naming minimum
+            self.target_type = 'data_dir'
+
+    def get_targets(self):
+        '''Gets and discovers target files relation to other files
+
+           if the target is a directory, the program will discover 
+           
+           all related files that can be checked
+        '''
+        logger = self.logger
+        target = self.target
+        target_type = self.target_type
+        target_object = {}
+        if target_type == 'file':  # starting with a file
+            if not check_file(target):
+                logger.error('Could not find file: {}'.format(target))
+                sys.exit(1)
+            organism_dir = os.path.dirname(os.path.dirname(target))  # org dir
+            target_attributes = self.target_name.split('.')
+            target_format = target_attributes[-2]  # get gff, fna, faa all gx
+            canonical_type = target_attributes[-3]  # check content type
+            target_key = target_attributes[-4]  # get key
+            target_ref_type = self.canonical_parents[canonical_type]
+            if canonical_type not in self.canonical_types:  # regject
+                logger.error('Type {} not recognized in {}'.format(
+                                                        canonical_type,
+                                                        self.canonical_types))
+                sys.exit(1)
+            logger.info('Getting target files reference if necessary...')
+            if len(target_attributes) > 7 and target_ref_type:  # check parent
+                logger.info('Target Derived from Some Reference Searching...')
+                ref_glob = '{}/{}*/*{}.*.gz'.format(organism_dir, 
+                                          '.'.join(target_attributes[1:3]),
+                                          target_ref_type)
+                my_reference = self.get_reference(ref_glob)
+                target_object[my_reference] = {'type': target_ref_type, 
+                                               'children': {}}
+                target_object[my_reference]['children'][target] = {
+                                                        'type': canonical_type,
+                                                        'children': {}}
+            else:
+                logger.info('Target has no Parent, it is a Reference')
+                target_object[target] = {'type': canonical_type,
+                                         'children': {}}
+            self.target_objects.append(target_object)
+            return
+            parent_dir = os.path.basename(os.path.dirname(target))
+            parent_atributes = parent_dir.split('.')
+            parent_prefix = parent_attributes[0]  # some name
+            parent_type = parent_attributes[1]  # gnm or other
+            parent_key = parent_attributes[-1]  # key lives on all children
+            parent_check = '.'.join([parent_prefix, parent_type])
+            (org_genus, org_species) = organism_dir.split('_')
+            org_prefix = org_genus[0:3].lower() + org_species[0:2].lower()
+#            if not self.disable_dir_checks:  # if performing dirname checks
+#                if org_prefix != target_attributes[0]:  # organism ! target
+#                    org_error = ('Organism directory {}'.format(organism_dir) + 
+#                                 ' produces prefix {}'.format(org_prefix)
+#                    target_error = ', but Target has prefix {}'.format(
+#                                                          target_attributes[0])
+#                    logger.error('{}{}'.format(org_error, target_error))
+#                    sys.exit(1)
+#                logger.info('File Prefix Matches Organism Prefix')
+#                if parent_check != '.'.join(target_attributes[1:2]):
+#                    parent_error = ('Parent directory {}'.format(parent_dir) +
+#                                    ' has {}'.format(parent_check))
+#                    target_error = ', but Target has {}'.format(
+#                                                        target_attributes[1:2])
+#
+#            if target_format == 'fna':
+#                logger.info('Nucleotide FASTA')
+#                logger.info('Looking for related files')
+#            if target_format == 'gff3':  # annotation
+#                continue
+#            if target_format == 'faa':  # peptides
+#                continue
+        elif target_type == 'data_dir':  # data directory
+            return
+        elif target_type == 'organism_dir':  # entire organism
+            return
+
+    def get_reference(self, glob_target):
+        '''Finds the FASTA reference for some prefix'''
+        logger = self.logger
+        if len(glob(glob_target)) > 1:
+            logger.error('Multiple references found {}'.format(glob_target))
+            sys.exit(1)
+        reference = glob(glob_target)
+        if not reference:
+            logger.error('Could not find ref glob'.format(glob_target))
+            sys.exit(1)
+        reference = glob(glob_target)[0]
+        if not os.path.isfile(reference):
+            logger.error('Could not find main target {}'.format(reference))
+            sys.exit(1)
+        logger.info('Found reference {}'.format(reference))
+        return reference
 
     def check_genome_main(self, attr):
         '''accepts a list of genome attributes split by "."
@@ -368,12 +478,10 @@ class Detector:
             else:
                 logger.error('DOI {}: {} INVALID'.format(d, object_dois[d]))
 
-    def check_dir_type(self, directory, check_sum, doi):
-        '''Check the type of directory and perform workflow based on type
+    def check_dir_type(self):
+        '''Check the type of directory and discover related files
 
            current types are ann and gnm
-        
-           check_sum and doi are bools.
         '''
         main_file = ''
         file_type = ''

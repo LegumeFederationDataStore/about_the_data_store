@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import os, sys
+import logging
 import gzip
+
 
 def return_filehandle(open_me):
     '''return file handle for gz compressed or text file'''
@@ -32,6 +34,7 @@ def check_file(f):
     except OSError:
         raise
     return os.path.isfile(f)
+
 
 
 if __name__ == '__main__':
