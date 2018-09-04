@@ -26,7 +26,7 @@ class Detector:
                                   'gene_models_main': 'genome_main'}
         self.log_level = kwargs.get('log_level', 'INFO')
         self.log_file = kwargs.get('log_file', './incongruencies.log')
-        self.target_objects = []  # store all target pairings self.get_targets
+        self.target_objects = {}  # store all target pairings self.get_targets
         self.fasta_ids = {}
         self.reporting = {}
         self.target = os.path.abspath(target)
@@ -41,6 +41,8 @@ class Detector:
         self.get_targets()
         for t in self.target_objects:  # for each object set validate
             logger.info('{}'.format(t))
+            for c in self.target_objects[t]['children']:
+                logger.info('{}'.format(c))
         logger.info('Initialized Detector')
 
     def setup_logging(self):
@@ -61,15 +63,17 @@ class Detector:
 
            if its a directory, is it an organism directory or a data directory?
         '''
+        logger = self.logger
         target_name = os.path.basename(self.target)
         self.target_name = target_name
         self.target_type = False
+        logger.debug(self.target_name)
         if target_name.endswith('.gz'):  # all datastore files end in .gz
             self.target_type = 'file'
         elif(len(target_name.split('_')) == 2 and \
-             len(target_name.split('.')) < 5):
+             len(target_name.split('.')) < 4):
             self.target_type = 'organism_dir'  # will always be Genus_species
-        elif len(target_name.split('.')) >= 5:  # standard naming minimum
+        elif len(target_name.split('.')) >= 4:  # standard naming minimum
             self.target_type = 'data_dir'
 
     def get_targets(self):
@@ -82,74 +86,73 @@ class Detector:
         logger = self.logger
         target = self.target
         target_type = self.target_type
-        target_object = {}
         if target_type == 'file':  # starting with a file
-            if not check_file(target):
-                logger.error('Could not find file: {}'.format(target))
-                sys.exit(1)
-            organism_dir = os.path.dirname(os.path.dirname(target))  # org dir
-            target_attributes = self.target_name.split('.')
-            target_format = target_attributes[-2]  # get gff, fna, faa all gx
-            canonical_type = target_attributes[-3]  # check content type
-            target_key = target_attributes[-4]  # get key
-            target_ref_type = self.canonical_parents[canonical_type]
-            if canonical_type not in self.canonical_types:  # regject
-                logger.error('Type {} not recognized in {}'.format(
-                                                        canonical_type,
-                                                        self.canonical_types))
-                sys.exit(1)
-            logger.info('Getting target files reference if necessary...')
-            if len(target_attributes) > 7 and target_ref_type:  # check parent
-                logger.info('Target Derived from Some Reference Searching...')
-                ref_glob = '{}/{}*/*{}.*.gz'.format(organism_dir, 
-                                          '.'.join(target_attributes[1:3]),
-                                          target_ref_type)
-                my_reference = self.get_reference(ref_glob)
-                target_object[my_reference] = {'type': target_ref_type, 
-                                               'children': {}}
-                target_object[my_reference]['children'][target] = {
-                                                        'type': canonical_type,
-                                                        'children': {}}
-            else:
-                logger.info('Target has no Parent, it is a Reference')
-                target_object[target] = {'type': canonical_type,
-                                         'children': {}}
-            self.target_objects.append(target_object)
+            self.add_target_object()
             return
-            parent_dir = os.path.basename(os.path.dirname(target))
-            parent_atributes = parent_dir.split('.')
-            parent_prefix = parent_attributes[0]  # some name
-            parent_type = parent_attributes[1]  # gnm or other
-            parent_key = parent_attributes[-1]  # key lives on all children
-            parent_check = '.'.join([parent_prefix, parent_type])
-            (org_genus, org_species) = organism_dir.split('_')
-            org_prefix = org_genus[0:3].lower() + org_species[0:2].lower()
-#            if not self.disable_dir_checks:  # if performing dirname checks
-#                if org_prefix != target_attributes[0]:  # organism ! target
-#                    org_error = ('Organism directory {}'.format(organism_dir) + 
-#                                 ' produces prefix {}'.format(org_prefix)
-#                    target_error = ', but Target has prefix {}'.format(
-#                                                          target_attributes[0])
-#                    logger.error('{}{}'.format(org_error, target_error))
-#                    sys.exit(1)
-#                logger.info('File Prefix Matches Organism Prefix')
-#                if parent_check != '.'.join(target_attributes[1:2]):
-#                    parent_error = ('Parent directory {}'.format(parent_dir) +
-#                                    ' has {}'.format(parent_check))
-#                    target_error = ', but Target has {}'.format(
-#                                                        target_attributes[1:2])
-#
-#            if target_format == 'fna':
-#                logger.info('Nucleotide FASTA')
-#                logger.info('Looking for related files')
-#            if target_format == 'gff3':  # annotation
-#                continue
-#            if target_format == 'faa':  # peptides
-#                continue
         elif target_type == 'data_dir':  # data directory
+            self.get_all_files()
             return
         elif target_type == 'organism_dir':  # entire organism
+            self.get_all_files()
             return
+
+    def get_all_files(self):
+        '''Walk down filetree and recursively return all files
+        
+           These will be checked using add_target_object
+        '''
+        logger = self.logger
+        target = self.target
+        for root, directories, filenames in os.walk(target):
+            for filename in filenames:
+                my_target = os.path.join(root, filename)
+                logger.info('Checking file {}'.format(my_target))
+                self.target = my_target
+                self.target_name = os.path.basename(self.target)
+                self.add_target_object()
+
+    def add_target_object(self):
+        '''Uses parent child logic to create a datastructure for objects'''
+        logger = self.logger
+        target = self.target
+        logger.debug(target)
+        if not check_file(target):
+            logger.error('Could not find file: {}'.format(target))
+            sys.exit(1)
+        organism_dir = os.path.dirname(os.path.dirname(target))  # org dir
+        target_attributes = self.target_name.split('.')
+        target_format = target_attributes[-2]  # get gff, fna, faa all gx
+        canonical_type = target_attributes[-3]  # check content type
+        if canonical_type not in self.canonical_types:  # regject
+            logger.error('Type {} not recognized in {}.  Skipping'.format(
+                                                          canonical_type,
+                                                    self.canonical_types))
+            return
+        target_key = target_attributes[-4]  # get key
+        target_ref_type = self.canonical_parents[canonical_type]
+        logger.info('Getting target files reference if necessary...')
+        if len(target_attributes) > 7 and target_ref_type:  # check parent
+            logger.info('Target Derived from Some Reference Searching...')
+            ref_glob = '{}/{}*/*{}.*.gz'.format(organism_dir, 
+                                      '.'.join(target_attributes[1:3]),
+                                      target_ref_type)
+            my_reference = self.get_reference(ref_glob)
+            if my_reference not in self.target_objects:
+                self.target_objects[my_reference] = {'type': target_ref_type,
+                                                     'children': {}}
+                self.target_objects[my_reference]['children'][target] = {
+                                                    'type': canonical_type,
+                                                    'children': {}}
+            else:
+                if target not in self.target_objects[my_reference]['children']:
+                    self.target_objects[my_reference]['children'][target] = {
+                                                     'type': canonical_type,
+                                                     'children': {}}
+        else:
+            logger.info('Target has no Parent, it is a Reference')
+            if not target in self.target_objects:
+                self.target_objects[target] = {'type': canonical_type,
+                                               'children': {}}
 
     def get_reference(self, glob_target):
         '''Finds the FASTA reference for some prefix'''
@@ -168,6 +171,7 @@ class Detector:
         logger.info('Found reference {}'.format(reference))
         return reference
 
+    
     def check_genome_main(self, attr):
         '''accepts a list of genome attributes split by "."
 
