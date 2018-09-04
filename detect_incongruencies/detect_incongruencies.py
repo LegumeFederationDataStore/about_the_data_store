@@ -38,7 +38,8 @@ def main(target, log_file, log_level, normalize):
         print('Must specify at least one --target.  Run with --help for usage')
     options = {'log_level': log_level, 'log_file': log_file}
     for t in target:
-        Detector(t, **options)
+        detector = Detector(t, **options)
+        detector.detect_incongruencies()
 
 
 if __name__ == '__main__':

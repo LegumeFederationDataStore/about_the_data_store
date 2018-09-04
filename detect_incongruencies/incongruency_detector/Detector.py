@@ -19,6 +19,13 @@ class Detector:
     def __init__(self, target, **kwargs):
         '''Check for logger, check for gt'''
         subprocess.check_call('gt -help', shell=True)  # check for gt in env
+        self.checks = {}  # object that determines which checks are skipped
+        self.checks['genome_main'] = kwargs.get('disable_genome_main', True)
+        self.checks['gene_models_main'] = kwargs.get(
+                                            'disable_gene_models_main', True)
+        self.checks['perform_gt'] = kwargs.get('disable_gt', True)
+        self.checks['fasta_headers'] = kwargs.get(
+                                            'disable_fasta_headers', True)
         self.canonical_types = ['genome_main', 
                                 'gene_models_main', 
                                 'ADDMORESTUFF']  #  types for detector
@@ -26,6 +33,7 @@ class Detector:
                                   'gene_models_main': 'genome_main'}
         self.log_level = kwargs.get('log_level', 'INFO')
         self.log_file = kwargs.get('log_file', './incongruencies.log')
+        self.output_prefix = kwargs.get('output_prefix', './incongruencies')
         self.target_objects = {}  # store all target pairings self.get_targets
         self.fasta_ids = {}
         self.reporting = {}
@@ -39,10 +47,12 @@ class Detector:
             sys.exit(1)
         logger.info('Target type looks like {}'.format(self.target_type))
         self.get_targets()
+#        logger.debug(''.format(self.target_objects))
         for t in self.target_objects:  # for each object set validate
-            logger.info('{}'.format(t))
-            for c in self.target_objects[t]['children']:
-                logger.info('{}'.format(c))
+            logger.debug('{}'.format(t))
+            logger.debug('{}'.format(self.target_objects[t]))
+#            for c in self.target_objects[t]['children']:
+#                logger.info('{}'.format(c))
         logger.info('Initialized Detector')
 
     def setup_logging(self):
@@ -157,29 +167,55 @@ class Detector:
     def get_reference(self, glob_target):
         '''Finds the FASTA reference for some prefix'''
         logger = self.logger
-        if len(glob(glob_target)) > 1:
+        if len(glob(glob_target)) > 1:  # too many references....?
             logger.error('Multiple references found {}'.format(glob_target))
             sys.exit(1)
         reference = glob(glob_target)
-        if not reference:
+        if not reference:  # if the objects parent could not be found
             logger.error('Could not find ref glob'.format(glob_target))
             sys.exit(1)
         reference = glob(glob_target)[0]
-        if not os.path.isfile(reference):
+        if not os.path.isfile(reference):  # if cannot find reference file
             logger.error('Could not find main target {}'.format(reference))
             sys.exit(1)
         logger.info('Found reference {}'.format(reference))
         return reference
 
-    
-    def check_genome_main(self, attr):
+    def detect_incongruencies(self):
+        '''Detects all incongruencies in self.target_objects
+        
+           report all incongruencies to self.output_prefix
+        '''
+        logger = self.logger
+        targets = self.target_objects  # get objects from class init
+        for reference in targets:
+            logger.info('Performing Checks for {}'.format(reference))
+            if targets[reference]['type'] == 'genome_main':
+                self.target = reference
+                if self.checks['genome_main']:
+                    if not self.check_genome_main():  # check naming
+                        logger.error('Reference {} FAILED'.format(reference))
+                        continue
+                logger.debug('{}'.format(targets[reference]))
+                continue
+                if self.checks['fasta_headers']:
+                    if not self.check_genome_fasta():  # check headers
+                        logger.error('Genome {} FASTA FAILED'.format(
+                                                               reference))
+                        continue
+            if self.target_objects[reference]['children']:
+                logger.info('STUFF CHILDREN')
+
+    def check_genome_main(self):
         '''accepts a list of genome attributes split by "."
 
            https://github.com/LegumeFederation/datastore/issues/23
 
            checks these file attributes to ensure they are correct
         '''
+        target = self.target
         logger = self.logger
+        attr = os.path.basename(target).split('.')  # split on delimiter
         if len(attr) != 7:  # should be 7 fields
             logger.error('File did not have 7 fields! {}'.format(attr))
             sys.exit(1)
@@ -206,6 +242,48 @@ class Detector:
         if not attr[6] == 'gz':  # should be gzip compressed
             logger.error('Last field should be gz, not {}'.format(attr[6]))
             sys.exit(1)
+        logger.info('Genome Naming Looks Correct')
+        return True
+
+    def check_genome_fasta(self):
+        '''Confirms that headers in fasta genome_main conform with standard
+
+           PUT SOME RULE REFERENCE HERE
+        '''
+        logger = self.logger
+        fasta = self.target  # get fasta file
+        attr = os.path.basename(fasta).split('.')  # get attributes for naming
+        self.fasta_ids = {}  # initialize fasta ids for self
+        f_ids = self.fasta_ids  # set to overwrite for each reference
+        true_header = '.'.join(attr[:3])
+        fh = return_filehandle(fasta)  # get file handle, text/gz
+        re_header = re.compile("^>(\S+)\s*(.*)")  # grab header and description
+        passed = True
+        with fh as gopen:
+            for line in gopen:
+                line = line.rstrip()
+                if not line:
+                    continue
+                if re_header.match(line):  # check for fasta header
+                    hid = re_header.search(line)
+                    if hid:
+                        logger.debug(hid.groups(0))
+                        if isinstance(hid, basestring):  # check for tuple
+                            hid = hid.groups(0)
+                        else:
+                            hid = hid.groups(0)[0]  # get id portion of header
+                    else:
+                        logger.error('Header {} looks odd...'.format(line))
+                        sys.exit(1)
+                    logger.debug(hid)
+                    f_ids[hid] = 1
+                    standard_header = true_header + '.' + hid
+                    if not hid.startswith(true_header):
+                        logger.warning(('Inconsistency {} '.format(hid) +
+                                        'Should be {}'.format(standard_header))
+                                      )
+                        passed = False
+        return passed
 
     def check_gene_models_main(self, attr):
         '''accepts a list of annotation attributes split by "."
@@ -255,44 +333,7 @@ class Detector:
             logger.error('Last field should be gz, not {}'.format(attr[6]))
             sys.exit(1)
 
-    def check_fasta(self, fasta, attr):
-        '''Confirms that headers in fasta genome_main conform with standard
-
-           https://github.com/LegumeFederation/datastore/issues/23
-        '''
-        logger = self.logger
-        self.fasta_ids = {}
-        f_ids = self.fasta_ids
-        true_header = '.'.join(attr[:3])
-        fh = return_filehandle(fasta)  # get file handle, text/gz
-        re_header = re.compile("^>(\S+)\s*(.*)")  # grab header and description
-        passed = True
-        with fh as gopen:
-            for line in gopen:
-                line = line.rstrip()
-                if not line:
-                    continue
-                if re_header.match(line):  # check for fasta header
-                    hid = re_header.search(line)
-                    if hid:
-                        logger.debug(hid.groups(0))
-                        if isinstance(hid, basestring):  # check for tuple
-                            hid = hid.groups(0)
-                        else:
-                            hid = hid.groups(0)[0]  # get id portion of header
-                    else:
-                        logger.error('Header {} looks odd...'.format(line))
-                        sys.exit(1)
-                    logger.debug(hid)
-                    f_ids[hid] = 1
-                    standard_header = true_header + '.' + hid
-                    if not hid.startswith(true_header):
-                        logger.warning(('Inconsistency {} '.format(hid) +
-                                        'Should be {}'.format(standard_header))
-                                      )
-                        passed = False
-        return passed
-
+    
     def check_gff3_seqid(self, seqid):
         '''Confirms that column 1 "seqid" exists in genome_main if provided'''
         f_ids = self.fasta_ids  # fasta_ids generated from check_Reference
@@ -614,105 +655,36 @@ class Detector:
                 continue
         return related_files
 
-    def detect_incongruencies(self, **kwargs):
-        '''Initiate and control workflow
-        
-           Currently looks for genomes and annotations.
-
-           Can perform checks for cheksum validity and DOI checks
-        '''
-        fh = ''
-        logger = self.logger
-        genome = self.genome
-        annotation = self.annotation
-        directory = self.directory
-        if directory:  # if the user provided a directory check and find files
-            directory = os.path.abspath(directory)
-            if not os.path.isdir(directory):
-                logger.error('could not find {}'.format(directory))
-                sys.exit(1)
-            directories = []  # list to send to check methods
-            dir_check = self.check_dir_type(directory, False, False)
-            if not dir_check:  # maybe dir is organism dir
-                logger.info('Directory is not a type.  Checking if organism.')
-                directories = self.get_files(directory)  # get object for loop
-            else:
-                dir_obj = {'genome': '', 'annotation': []}  # object to append
-                parent_dir = os.path.dirname(directory)
-                target_dir = os.path.basename(directory)
-                prefix = '.'.join(target_dir.split('.')[:2])
-                if dir_check[1] == 'genome':
-                    dir_obj['genome'] = directory
-                    anno_glob = ('{}/{}.ann[0-9]*/'.format(parent_dir, prefix)+ 
-                                 '*gene_models_main.gff3.gz')
-                    anns = glob(anno_glob)
-                    if not anns:
-                        logger.debug('No annotation found for {}'.format(
-                                                                    directory))
-                        directories.append(dir_obj)  # append object
-                    else:
-                        annotations = []
-                        for a in anns:
-                            annotations.append(os.path.dirname(a))  # list
-                        dir_obj['annotation'] = annotations
-                        directories.append(dir_obj)  # append object
-                elif dir_check[1] == 'annotation': 
-                    geno_glob = ('{}/{}*/'.format(parent_dir, prefix) + 
-                                 '*genome_main.fna.gz')
-                    genomes = glob(geno_glob)
-                    if not genomes:  # all annotations require a genome
-                        logger.error('No genomes found for {}'.format(
-                                                                    directory))
-                        sys.exit(1)
-                    elif len(genomes) > 1:  # should only be one genome
-                        logger.error('Multiple genomes found for {}'.format(
-                                                                    directory))
-                        sys.exit(1)
-                    else:
-                        dir_obj['genome'] = os.path.dirname(genomes[0])
-                        dir_obj['annotation'] = [directory]
-                        directories.append(dir_obj)
-                else:
-                    logger.error('Directory {} is not cannonical'.format(
-                                                                    directory))
-                    sys.exit(1)
-            logger.debug(directories)  # see what is going into loop
-            for d in directories:
-                genome = d.get('genome')  # get and check
-                annotation = d.get('annotation') # get and check
-                logger.info('Checking Genome:{} and Annotation:{}'.format(
-                                                                 genome,
-                                                                 annotation))
-                if genome:
-                    main_file, file_type = self.check_dir_type(genome, True, 
-                                                               True)
-                    if file_type == 'genome':
-                        self.run_genome(main_file)
-                    else:
-                        logger.warning('Assembly does not look like a genome')
-                        continue
-                if annotation:
-                    for a in annotation:
-                        main_file, file_type = self.check_dir_type(a, True,
-                                                                   True)
-                        if file_type == 'annotation':
-                            self.run_annotation(main_file)
-                        else:
-                            logger.warning('Annotation looks odd...')
-                            continue
-                if not (genome or annotation):
-                    logger.warning('No Files found for {}'.format(d))
-#                else:
-#                    logger.warning('Did not recognize type {}'.format(
-#                                                                 file_type))
-#                    continue
-                logger.info('Done Checking, Proceeding to next target...')
-            logger.info('Done')
-            return True
-        if genome:
-            self.run_genome(genome)
-        if annotation:
-            self.run_annotation(annotation)
-            
-#         logger.info('Collecting report...') #  implement reporting at end
-        logger.info('DONE')
+#                if genome:
+#                    main_file, file_type = self.check_dir_type(genome, True, 
+#                                                               True)
+#                    if file_type == 'genome':
+#                        self.run_genome(main_file)
+#                    else:
+#                        logger.warning('Assembly does not look like a genome')
+#                        continue
+#                if annotation:
+#                    for a in annotation:
+#                        main_file, file_type = self.check_dir_type(a, True,
+#                                                                   True)
+#                        if file_type == 'annotation':
+#                            self.run_annotation(main_file)
+#                        else:
+#                            logger.warning('Annotation looks odd...')
+#                            continue
+#                if not (genome or annotation):
+#                    logger.warning('No Files found for {}'.format(d))
+##                else:
+##                    logger.warning('Did not recognize type {}'.format(
+##                                                                 file_type))
+##                    continue
+#                logger.info('Done Checking, Proceeding to next target...')
+#            logger.info('Done')
+#            return True
+#        if genome:
+#            self.run_genome(genome)
+#        if annotation:
+#            self.run_annotation(annotation)
+#            
+##         logger.info('Collecting report...') #  implement reporting at end
+#        logger.info('DONE')
