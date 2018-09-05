@@ -190,21 +190,35 @@ class Detector:
         targets = self.target_objects  # get objects from class init
         for reference in targets:
             logger.info('Performing Checks for {}'.format(reference))
-            if targets[reference]['type'] == 'genome_main':
+            if targets[reference]['type'] == 'genome_main':  # add more cheks
                 self.target = reference
                 if self.checks['genome_main']:
+                    logger.info('Checking Genome File Naming...')
                     if not self.check_genome_main():  # check naming
                         logger.error('Reference {} FAILED'.format(reference))
                         continue
-                logger.debug('{}'.format(targets[reference]))
-                continue
+                    logger.info('File Naming Looks Correct')
                 if self.checks['fasta_headers']:
+                    logger.info('Checking FASTA Format and Naming...')
                     if not self.check_genome_fasta():  # check headers
                         logger.error('Genome {} FASTA FAILED'.format(
                                                                reference))
                         continue
-            if self.target_objects[reference]['children']:
-                logger.info('STUFF CHILDREN')
+                    logger.info('FASTA Format and Sequence Naming Correct.')
+                logger.debug('{}'.format(targets[reference]))
+            if self.target_objects[reference]['children']:  # process children
+                children = self.target_objects[reference]['children']
+                for c in children:
+                    logger.info('Performing Checks for {}'.format(c))
+                    if children[c]['type'] == 'gene_models_main':  # add checks
+                        self.target = c
+                        if self.checks['gene_models_main']:
+                            logger.info('Checking Gene Models File Naming...')
+                            if not self.check_gene_models_main():  # check name
+                                logger.error('Gene Models Naming FAILED')
+                                continue
+                            logger.info('Gene Models File Naming Correct.')
+                    logger.info(''.format(c))
 
     def check_genome_main(self):
         '''accepts a list of genome attributes split by "."
@@ -268,7 +282,7 @@ class Detector:
                     hid = re_header.search(line)
                     if hid:
                         logger.debug(hid.groups(0))
-                        if isinstance(hid, basestring):  # check for tuple
+                        if isinstance(hid, str):  # check for tuple
                             hid = hid.groups(0)
                         else:
                             hid = hid.groups(0)[0]  # get id portion of header
@@ -285,14 +299,16 @@ class Detector:
                         passed = False
         return passed
 
-    def check_gene_models_main(self, attr):
+    def check_gene_models_main(self):
         '''accepts a list of annotation attributes split by "."
 
            https://github.com/LegumeFederation/datastore/issues/23
 
            checks these file attributes to ensure they are correct
         '''
+        target = self.target
         logger = self.logger
+        attr = os.path.basename(target).split('.')  # split on delimiter 
         if len(attr) != 8:  # should be 8 fields
             logger.error('File did not have 7 fields! {}'.format(attr))
             sys.exit(1)
@@ -332,7 +348,7 @@ class Detector:
         if not attr[7] == 'gz':  # should be gzip compressed
             logger.error('Last field should be gz, not {}'.format(attr[6]))
             sys.exit(1)
-
+        return True
     
     def check_gff3_seqid(self, seqid):
         '''Confirms that column 1 "seqid" exists in genome_main if provided'''
