@@ -109,12 +109,56 @@ The basic, simple concepts of federated repositories are:
       Tanjil.tcp1.p27w/
       Unicrop.tcp1.YVT4/
 ```
-  
+#### Naming map files:
+Map files have a slightly different format. Because there is a separate naming standard
+for maps (see [peanutbase.org/chado/featuremap](https://peanutbase.org/chado/featuremap)), 
+the file naming schema for the Data Store must be slightly altered to: 
+[species_abbreviation].[map_name].[identifier].[map_type].[map].cmap
+In turn, the map name has to be altered to remove the .'s in species names:  
+```
+      A.duranensis  -> aradu  
+      A.ipaensis    -> araip  
+      A.stenosperma -> arast  
+      et cetera  
+```
+As composite maps in peanut are typically derived from multi-species maps, they are all 
+prefaced with "arachis" and named by publication. For example, 
+"TT_AhConsensus_ShirasawaBertioli2013". Additionally, all map names are given a letter
+suffix to distinguish multiple maps created from the same parental genotypes.
+
+Examples:
+```
+      arahy.TT_Tifrunner_x_GT-C20_c.map.Z2ST.genetic.cmap
+      arahy.TT_Florunner_x_araba-araca-aradi_a.map.FQ8V.genetic.cmap
+      arachis.AhConsensus_GautamiFonceka2012_a.map.J0V6.genetic.cmap
+```
+
+As for other data types, directory names comprise the 2nd, 3rd, and 4th fields of the file names. Examples:
+```
+      TT_Tifrunner_x_GT-C20_c.map.Z2ST/
+      TT_Florunner_x_araba-araca-aradi_a.map.FQ8V/
+      AhConsensus_GautamiFonceka2012_a.map.J0V6/
+```
+
+#### Naming genotype files:
+[species-genotyped].[assembly-genotype-or-species][associated-assembly].div.[key].[data-type].[vcf|hmp|flapjack]
+Example:
+```
+      arahy.Tiffrunner.gnm1.div.Z0Z0.snp_chip.hmp
+```
+
+One exceptional case is the peanut mini core genotype data which was based on a "pseudo"
+assembly constructed from the aradu and araip assemblies. This file was named thusly:
+```
+      arahy.aradu1_araip1.gnm1.div.2B6N.snp_chip.hmp (WARNING: special case)
+```
+
 ### METADATA: README, MANIFEST, CHECKSUM:
 Retain the original README file(s) from the original repository, if any. Prefix
 such files with "original_readme.", followed by the repository name and ".txt"
 
-For the remaining prescribed metadata files, there should be a README file, two MANIFEST files, and a CHECKSUM file:
+For the remaining prescribed metadata files, there should be a README file, two MANIFEST 
+files, and a CHECKSUM file:
 
 ```
 There should be four metadata files in each directory:
