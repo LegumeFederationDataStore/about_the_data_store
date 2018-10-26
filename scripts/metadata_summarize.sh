@@ -12,7 +12,7 @@ echo "<p><b><big>Overview of data in this directory</big></b></p>" \
   > $BASEDIR/$OUTERDIR/_h5ai.header.html
 
 echo "  Making header"
-find $BASEDIR/$OUTERDIR -name "README*.yml" -print0 | sort -z | xargs -0 | perl -pe 's/ /\n/g' |
+find $BASEDIR/$OUTERDIR -name "README*.yml" -print0 | sort -z | xargs -0 | perl -pe 's/ /\n/g' | grep -v "\/\." |
   xargs -I{} grep -H "subject:" {} | 
   perl -pe 's{(.+[^/]+)/([^/]+)/(README.\w+.yml:subject: +)(.+)}{$2 $4}' |
   perl -pe 's/(^\S+) (.+)/  <b>$1:<\/b> $2<br>/' \
