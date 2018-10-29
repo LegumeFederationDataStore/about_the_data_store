@@ -113,7 +113,7 @@ The basic, simple concepts of federated repositories are:
 Map files have a slightly different format. Because there is a separate naming standard
 for maps (see [peanutbase.org/chado/featuremap](https://peanutbase.org/chado/featuremap)), 
 the file naming schema for the Data Store must be slightly altered to: 
-[species_abbreviation].[map_name].[identifier].[map_type].[map].cmap
+[species_abbreviation].[map_name].map.[key].[map_type].cmap
 In turn, the map name has to be altered to remove the .'s in species names:  
 ```
       A.duranensis  -> aradu  
@@ -141,7 +141,7 @@ As for other data types, directory names comprise the 2nd, 3rd, and 4th fields o
 ```
 
 #### Naming genotype files:
-[species-genotyped].[assembly-genotype-or-species][associated-assembly].div.[key].[data-type].[vcf|hmp|flapjack]
+[species-genotype].[assembly-genotype-or-species][associated-assembly].div.[key].[data-type].[vcf|hmp|flapjack]
 Example:
 ```
       arahy.Tiffrunner.gnm1.div.Z0Z0.snp_chip.hmp
@@ -151,6 +151,16 @@ One exceptional case is the peanut mini core genotype data which was based on a 
 assembly constructed from the aradu and araip assemblies. This file was named thusly:
 ```
       arahy.aradu1_araip1.gnm1.div.2B6N.snp_chip.hmp (WARNING: special case)
+```
+
+#### Naming phenotype directories and files:
+Directory: [study-name].trt.[key]  
+Files: [species-abbreviation].[study-name].trt.[key].[descriptors/observations].xsl[x]  
+Example:
+```
+      minicore_Dezern.trt.Z0Z0/
+        arahy.minicore_Dezern.trt.Z0Z0.descriptors.xlsx
+        arahy.minicore_Dezern.trt.Z0Z0.observations.xlsx
 ```
 
 ### METADATA: README, MANIFEST, CHECKSUM:
