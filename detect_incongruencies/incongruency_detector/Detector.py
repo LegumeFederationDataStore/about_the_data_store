@@ -42,6 +42,7 @@ class Detector:
         self.fasta_ids = {}
         self.reporting = {}
         self.target = os.path.abspath(target)
+        self.target_readme = ''
         self.setup_logging()  # setup logging sets self.logger
         logger = self.logger
         self.get_target_type()  # sets self.target_name and self.target_type
@@ -107,12 +108,12 @@ class Detector:
         if target_type == 'file':  # starting with a file
             self.add_target_object()
             return
-        elif target_type == 'data_dir':  # data directory
-            self.get_all_files()
+        elif target_type == 'data_dir' or target_type == 'organism_dir':
+            self.get_all_files()  # works for both data and organism
             return
-        elif target_type == 'organism_dir':  # entire organism
-            self.get_all_files()
-            return
+        #elif target_type == 'organism_dir':  # entire organism
+        #    self.get_all_files()
+        #    return
 
     def get_all_files(self):
         '''Walk down filetree and recursively return all files
@@ -140,7 +141,7 @@ class Detector:
         organism_dir = os.path.dirname(os.path.dirname(target))  # org dir
         target_attributes = self.target_name.split('.')
         if len(target_attributes) < 3:
-            logger.error('File {} does not look to have attributes'.format(
+            logger.error('File {} does not seem to have attributes'.format(
                                                                       target))
             return
         target_format = target_attributes[-2]  # get gff, fna, faa all gx
@@ -161,10 +162,10 @@ class Detector:
             my_reference = self.get_reference(ref_glob)
             if my_reference not in self.target_objects:
                 self.target_objects[my_reference] = {'type': target_ref_type,
+                                                     'readme': '',
                                                      'children': {}}
                 self.target_objects[my_reference]['children'][target] = {
-                                                    'type': canonical_type,
-                                                    'children': {}}
+                                                    'type': canonical_type}
             else:
                 if target not in self.target_objects[my_reference]['children']:
                     self.target_objects[my_reference]['children'][target] = {
@@ -232,35 +233,6 @@ class Detector:
                     my_detector = child_method(self, **self.options)
                     my_detector.run()
                     logger.info('{}'.format(c))
-
-    def parse_filenames(self, f):
-        '''parse attributes of filenames according to
-
-           https://github.com/LegumeFederation/datastore/issues/23
-
-           Will detect file type and error if it cannot
-        '''
-        #  maybe do a dir check thing here
-        logger = self.logger
-        logger.info('Checking filename standards')
-        f_path = os.path.dirname(f)
-        parent_dir = f_path.split('/')[-1]
-        file_name = os.path.basename(f)
-        file_attr = file_name.split('.')  # file name attributes split by "."
-        if file_attr[-3] == 'genome_main':  # position of type
-            logger.info('{} looks like a genome_main, processing...'.format(
-                                                                   file_name))
-            self.check_genome_main(file_attr)  # file naming is correct
-            logger.info('Filename checks out.  Checking reference headers...')
-            passed = self.check_fasta(f, file_attr)  # headers follow standard
-            return passed
-        if file_attr[-3] == 'gene_models_main':  # position of type
-            logger.info('{} looks like gene_models_main, processing...'.format(
-                                                                   file_name))
-            self.check_gene_models_main(file_attr)  # check file naming
-            logger.info('Filename checks out.  Checking GFF3 file...')
-            exit_val = self.check_gff3(f)  # gff follows standard
-            return exit_val
 
     def validate_checksum(self, md5_file, check_me):
         '''Get md5 checksum for file and compare to expected'''
@@ -344,169 +316,3 @@ class Detector:
                 logger.info('DOI {}: {} Validated'.format(d, object_dois[d]))
             else:
                 logger.error('DOI {}: {} INVALID'.format(d, object_dois[d]))
-
-    def check_dir_type(self):
-        '''Check the type of directory and discover related files
-
-           current types are ann and gnm
-        '''
-        main_file = ''
-        file_type = ''
-        logger = self.logger
-        dir_name = os.path.basename(directory)  # get dirname only
-        dir_test = len(dir_name.split('.'))
-        if dir_test < 3:
-            return False
-        dir_type = dir_name.split('.')[-2]  # get gnm, ann, etc
-        glob_str = '{}/*'.format(directory)
-        if dir_type.startswith('gnm'):
-            logger.info('This is a genome directory.  Looking for genome_main')
-            glob_str += 'genome_main.fna.gz'  # glob main fasta
-            fasta = glob(glob_str)
-            if len(fasta) != 1:
-                logger.warning('Multiple/0 genome_main found {}'.format(fasta))
-                return False
-            main_file = fasta[0]
-            logger.info('Found {}'.format(main_file))
-            file_type = 'genome'  # set type for return
-        elif dir_type.startswith('ann'):
-            logger.info(('This is an annotation directory. ' +  
-                         'Looking for gene_models_main'))
-            glob_str += 'gene_models_main.gff3.gz'  # glob main gff
-            gff = glob(glob_str)
-            if len(gff) != 1:
-                logger.warning('Multiple/0 gene_models_main for {}'.format(gff))
-                return False
-            main_file = gff[0]
-            logger.info('Found {}'.format(main_file))
-            file_type = 'annotation'  # set type for return
-        else:
-            logger.warning(('Format {} not recognized, '.format(dir_type) +
-                          'should be ann or gnm.'))
-            return False
-        if check_sum:  # check checksums if True
-            logger.info('Searching for checksum...')
-            check_glob = '{}/CHECKSUM.*.md5'.format(directory)
-            check_sum = glob(check_glob)  # get checksum file
-            if len(check_sum) != 1:  # There should be one checksum file
-                logger.warning('Multiple/0 checksums for {}'.format(main_file))
-                return False
-            check_sum_file = check_sum[0]
-            self.validate_checksum(check_sum_file, main_file)  # check checksum
-        if doi:  # check DOI if True and DOI found in README
-            logger.info('Searching for DOIs in this directory...')
-            check_readme = '{}/README.*.yml'.format(directory)
-            readme = glob(check_readme)
-            if len(readme) != 1:  # There should be one readme
-                logger.warning('Multiple/0 readmes for {}'.format(main_file))
-                return False
-            self.validate_doi(readme[0])
-        return (main_file, file_type)
-
-    def run_genome(self, genome):
-        '''Run genome workflow'''
-        logger = self.logger
-        normalizer = self.normalizer
-        logger.info('Genome {} will be checked...'.format(genome))
-        genome = os.path.abspath(genome)
-        if not check_file(genome):
-            logger.error('Could not find {}'.format(genome))
-            sys.exit(1)
-        passed = self.parse_filenames(genome)
-        if not passed and normalizer:
-            logger.info('Normalizing {}'.format(genome))
-            normalizer.normalize_genome_main(genome)
-
-    def run_annotation(self, annotation):
-        '''Run annotation workflow'''
-        logger = self.logger
-        normalizer = self.normalizer
-        annotation = os.path.abspath(annotation)
-        logger.info('Annotation {} will be checked...'.format(annotation))
-        if not check_file(annotation):
-            logger.error('Could not find {}'.format(annotation))
-            sys.exit(1)
-        exit_val = self.parse_filenames(annotation)  # gt exit value
-        if exit_val:
-            logger.warning('{} Failed gff3validator'.format(annotation))
-        if normalizer and exit_val:  # gt said it wasn't clean, tidy
-            logger.info('tiding gff3 file {}'.format(annotation))
-            normalizer.tidy_gff3(annotation)
-
-    def get_files(self, directory):
-        '''Get all related files, start with gnm return list of dicts
-
-           currently checks for annotations after finding genome
-        
-           for processing
-        '''
-        logger = self.logger
-        gnm_glob = '{}/*/*.gnm[0-9]*'.format(directory)
-        gnm_list = glob(gnm_glob)
-        related_files = []
-        logger.info('Globbing files to find main elements...')
-        for g in gnm_list:
-            if g.endswith('genome_main.fna.gz'):  # add more checks, transcriptome etc
-#            elif g.endswith('transcriptome_main.fna.gz')  # others
-                logger.info('Found genome {}'.format(g))
-                filename = os.path.basename(g)
-                prefix = '.'.join(filename.split('.')[:3])
-                ann_glob = '{}/*/{}.ann[0-9]*gene_models_main.gff3.gz'.format(
-                                                                    directory,
-                                                                    prefix)
-                anns = glob(ann_glob)
-                if not anns:
-                    logger.debug('No genemodels main for {}'.format(filename))
-                    anns = None
-                elif len(anns) > 1:
-        #            logger.warning('Multiple gene models fround for {}'.format(
-        #                                                             filename))
-        #            continue
-                    t_anns = []
-                    for a in anns:
-                        t_anns.append(os.path.dirname(a))
-                    anns = t_anns
-                else:
-                    logger.info('Found gene_models {}'.format(anns[0]))
-                    anns = [os.path.dirname(anns[0])]
-                files_obj = {'genome': os.path.dirname(g), 
-                             'annotation': anns}
-                related_files.append(files_obj)
-            else:
-                logger.debug('File {} not cannonical will not check'.format(g))
-                continue
-        return related_files
-
-#                if genome:
-#                    main_file, file_type = self.check_dir_type(genome, True, 
-#                                                               True)
-#                    if file_type == 'genome':
-#                        self.run_genome(main_file)
-#                    else:
-#                        logger.warning('Assembly does not look like a genome')
-#                        continue
-#                if annotation:
-#                    for a in annotation:
-#                        main_file, file_type = self.check_dir_type(a, True,
-#                                                                   True)
-#                        if file_type == 'annotation':
-#                            self.run_annotation(main_file)
-#                        else:
-#                            logger.warning('Annotation looks odd...')
-#                            continue
-#                if not (genome or annotation):
-#                    logger.warning('No Files found for {}'.format(d))
-##                else:
-##                    logger.warning('Did not recognize type {}'.format(
-##                                                                 file_type))
-##                    continue
-#                logger.info('Done Checking, Proceeding to next target...')
-#            logger.info('Done')
-#            return True
-#        if genome:
-#            self.run_genome(genome)
-#        if annotation:
-#            self.run_annotation(annotation)
-#            
-##         logger.info('Collecting report...') #  implement reporting at end
-#        logger.info('DONE')

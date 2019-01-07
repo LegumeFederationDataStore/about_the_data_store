@@ -268,3 +268,63 @@ class gene_models_main:
                         logger.error('feature name, should start with ' +
                                      '{} line {}'.format(true_name, lines))
         return True
+
+
+class readme_md:  # need to populate this correctly later
+
+    def __init__(self, detector, **kwargs):
+        self.detector = detector
+        self.target = detector.target
+        self.logger = detector.logger
+        self.fasta_ids = detector.fasta_ids
+
+    def validate_checksum(self, md5_file, check_me):
+        '''Get md5 checksum for file and compare to expected'''
+        logger = self.logger
+        fh = return_filehandle(md5_file)
+        hash_md5 = hashlib.md5()
+        check_sum_target = ''
+        switch = 0
+        with fh as copen:
+            for line in copen:
+                line = line.rstrip()
+                if not line or line.startswith('#'):
+                    continue
+                fields = line.split()
+                check_sum = fields[0]
+                filename = fields[1]
+                logger.debug('check_sum: {}, filename: {}'.format(
+                                                                  check_sum,
+                                                                  filename))
+                if not check_sum and filename:
+                    logger.error('Could not find sum and name for {}'.format(
+                                                                        line))
+                if filename == os.path.basename(check_me):
+                    logger.info('Checksum found for {}'.format(filename))
+                    check_sum_target = check_sum
+                    switch = 1
+        if not switch:
+            logger.error('Could not find checksum for {}'.format(check_me))
+            sys.exit(1)
+        with open(check_me, "rb") as copen:
+            for chunk in iter(lambda: copen.read(4096), b""):  # 4096 buffer
+                hash_md5.update(chunk)
+        target_sum = hash_md5.hexdigest()  # get sum
+        logger.debug(target_sum)
+        logger.debug(check_sum_target)
+        if target_sum != check_sum_target:  # compare sums
+            logger.error(('Checksum for file {} {} '.format(check_me, 
+                                                           target_sum) + 
+                          'did not match {}'.format(check_sum_target)))
+            sys.exit(1)
+        logger.info('Checksums checked out, moving on...')
+
+    def validate_doi(self, readme):
+        '''Parse README.<key>.yml and get publication or dataset DOIs
+        
+           Uses http://www.doi.org/factsheets/DOIProxy.html#rest-api
+        '''
+        logger = self.logger
+        publication_doi = ''
+        dataset_doi = ''
+        object_dois = {}
