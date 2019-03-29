@@ -13,6 +13,9 @@ import importlib.util
 from glob import glob
 from . import specification_checks
 from .helper import check_file, return_filehandle
+from .metrics import count_gff_features
+from .seqtools2.seqtools2.tools.basic_fasta_stats import basic_fasta_stats
+
 
 class Detector:
     '''Class to detect datastore file incongruencies with
@@ -38,11 +41,14 @@ class Detector:
         self.log_level = kwargs.get('log_level', 'INFO')
         self.log_file = kwargs.get('log_file', './incongruencies.log')
         self.output_prefix = kwargs.get('output_prefix', './incongruencies')
+        self.write_me = {}
+        self.passed = {}  # dictionary of passing names
         self.target_objects = {}  # store all target pairings self.get_targets
         self.fasta_ids = {}
         self.reporting = {}
         self.target = os.path.abspath(target)
         self.target_readme = ''
+        self.domain = 'https://legumeinfo.org/data/public'
         self.setup_logging()  # setup logging sets self.logger
         logger = self.logger
         self.get_target_type()  # sets self.target_name and self.target_type
@@ -130,6 +136,17 @@ class Detector:
                 self.target_name = os.path.basename(self.target)
                 self.add_target_object()  # add target if canonical
 
+    def get_target_file_type(self, target_file):
+        '''Determines if file is fasta, gff3, vcf, etc'''
+        file_type = target_file.split('.')[-2].lower()
+        if file_type == 'fna' or file_type == 'faa' or file_type == 'fasta':
+            file_type = 'fasta'
+        elif file_type == 'gff' or file_type == 'gff3':
+            file_type = 'gff3'
+        else:  # add more
+            return False
+        return file_type
+
     def add_target_object(self):
         '''Uses parent child logic to create a datastructure for objects'''
         logger = self.logger
@@ -138,42 +155,91 @@ class Detector:
         if not check_file(target):
             logger.error('Could not find file: {}'.format(target))
             sys.exit(1)
-        organism_dir = os.path.dirname(os.path.dirname(target))  # org dir
         target_attributes = self.target_name.split('.')
-        if len(target_attributes) < 3:
+        if len(target_attributes) < 3 or self.target_name[0] == '_':
             logger.error('File {} does not seem to have attributes'.format(
                                                                       target))
             return
-        target_format = target_attributes[-2]  # get gff, fna, faa all gx
         canonical_type = target_attributes[-3]  # check content type
         if canonical_type not in self.canonical_types:  # regject
             logger.error('Type {} not recognized in {}.  Skipping'.format(
                                                           canonical_type,
                                                     self.canonical_types))
             return
+        organism_dir_path = os.path.dirname(os.path.dirname(target))  # org dir
+        organism_dir = os.path.basename(os.path.dirname(os.path.dirname(target)))  # org dir
+        target_dir = os.path.basename(os.path.dirname(target))
+        genus = organism_dir.split('_')[0].lower()
+        species = organism_dir.split('_')[1].lower()
+        target_format = target_attributes[-2]  # get gff, fna, faa all gx
         target_key = target_attributes[-4]  # get key
         target_ref_type = self.canonical_parents[canonical_type]
         logger.info('Getting target files reference if necessary...')
+        file_type = self.get_target_file_type(self.target_name)
+        file_url = '{}/{}/{}/{}'.format(self.domain, organism_dir,
+                                        target_dir, self.target_name)
+        target_node_object = {
+               'filename' : self.target_name,
+               'filetype' : file_type,
+               'canonical_type' : canonical_type,
+               'url' : file_url,
+               'counts' : '',
+               'genus' : genus,
+               'species' : species,
+               'origin' : 'LIS',
+               'infraspecies' : target_attributes[1],
+               'derived_from' : [],
+               'child_of' : []}
         if len(target_attributes) > 7 and target_ref_type:  # check parent
             logger.info('Target Derived from Some Reference Searching...')
-            ref_glob = '{}/{}*/*{}.*.gz'.format(organism_dir, 
+            ref_glob = '{}/{}*/*{}.*.gz'.format(organism_dir_path, 
                                       '.'.join(target_attributes[1:3]),
                                       target_ref_type)
             my_reference = self.get_reference(ref_glob)
-            if my_reference not in self.target_objects:
+            if my_reference not in self.target_objects:  # new parent
+                parent_name = os.path.basename(my_reference)
+                file_type = self.get_target_file_type(parent_name)
+                organism_dir = os.path.basename(os.path.dirname(os.path.dirname(my_reference)))
+                ref_dir = os.path.basename(os.path.dirname(my_reference))
+                file_url = '{}/{}/{}/{}'.format(self.domain, organism_dir,
+                                                ref_dir, parent_name)
+                ref_node_object = {
+                    'filename' : parent_name,
+                    'filetype' : file_type,
+                    'canonical_type' : target_ref_type,
+                    'url' : file_url,
+                    'counts' : '',
+                    'genus' : genus,
+                    'species' : species,
+                    'origin' : 'LIS',
+                    'infraspecies' : target_attributes[1],
+                    'derived_from' : [],
+                    'child_of' : []}
+                target_node_object['child_of'].append(parent_name)
+                target_node_object['derived_from'].append(parent_name)
                 self.target_objects[my_reference] = {'type': target_ref_type,
+                                                     'node_data' : ref_node_object,
                                                      'readme': '',
                                                      'children': {}}
                 self.target_objects[my_reference]['children'][target] = {
+                                                    'node_data': target_node_object,
                                                     'type': canonical_type}
-            else:
+            else:  # the parent is already in the data structure add child
                 if target not in self.target_objects[my_reference]['children']:
+                    parent_name = os.path.basename(my_reference)
+                    target_node_object['child_of'].append(parent_name)
+                    target_node_object['derived_from'].append(parent_name)
                     self.target_objects[my_reference]['children'][target] = {
+                                                     'node_data': target_node_object,
                                                      'type': canonical_type}
-        else:
+        else:  # target is a reference
+            if target_ref_type:
+                logger.error('Reference was not found or file has <=7 fields')
+                sys.exit(1)
             logger.info('Target has no Parent, it is a Reference')
             if not target in self.target_objects:
                 self.target_objects[target] = {'type': canonical_type,
+                                               'node_data' : target_node_object,
                                                'children': {}}
 
     def get_reference(self, glob_target):
@@ -184,7 +250,7 @@ class Detector:
             sys.exit(1)
         reference = glob(glob_target)
         if not reference:  # if the objects parent could not be found
-            logger.error('Could not find ref glob'.format(glob_target))
+            logger.error('Could not find ref glob: {}'.format(glob_target))
             sys.exit(1)
         reference = glob(glob_target)[0]
         if not os.path.isfile(reference):  # if cannot find reference file
@@ -192,6 +258,20 @@ class Detector:
             sys.exit(1)
         logger.info('Found reference {}'.format(reference))
         return reference
+
+    def write_node_object(self):
+        '''Write object node for loading into DSCensor
+        
+           file name is object name from json
+        '''
+        my_name = self.write_me['filename']
+        if self.write_me['canonical_type'] == 'genome_main':
+            self.write_me['counts'] = basic_fasta_stats(self.target, 10, False)
+        elif self.write_me['canonical_type'] == 'gene_models_main':
+            self.write_me['counts'] = count_gff_features(self.target)
+        my_file = open('./{}.json'.format(my_name), 'w')
+        my_file.write(json.dumps(self.write_me))
+        my_file.close()
 
     def detect_incongruencies(self):
         '''Detects all incongruencies in self.target_objects
@@ -216,7 +296,11 @@ class Detector:
                 continue
             logger.debug(ref_method)
             my_detector = ref_method(self, **self.options)
-            my_detector.run()
+            passed = my_detector.run()
+            if passed:  # validation passed writing object node for DSCensor
+                self.passed[reference] = 1
+                self.write_me = targets[reference]['node_data']
+                self.write_node_object()
             logger.debug('{}'.format(targets[reference]))
             if self.target_objects[reference]['children']:  # process children
                 children = self.target_objects[reference]['children']
@@ -231,5 +315,9 @@ class Detector:
                         continue
                     logger.debug(child_method)
                     my_detector = child_method(self, **self.options)
-                    my_detector.run()
-                    logger.info('{}'.format(c))
+                    passed = my_detector.run()
+                    if passed:  # validation passed writing object node for DSCensor
+                        self.passed[reference] = 1
+                        self.write_me = children[c]['node_data']
+                        self.write_node_object()
+                    logger.debug('{}'.format(c))
