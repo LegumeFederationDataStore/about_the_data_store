@@ -46,6 +46,7 @@ class Detector:
         self.target_objects = {}  # store all target pairings self.get_targets
         self.fasta_ids = {}
         self.reporting = {}
+        self.node_data = {}  # nodes for DSCensor
         self.target = os.path.abspath(target)
         self.target_readme = ''
         self.domain = 'https://legumeinfo.org/data/public'
@@ -56,6 +57,13 @@ class Detector:
             logger.error('Target type not recognized for {}'.format(
                                                                   self.target))
             sys.exit(1)
+        if not os.environ.get('BUSCO_ENV_FILE', None) and not kwargs.get('no_busco'):
+            logger.error('''
+                BUSCO_ENV_File Must Be set, please export
+
+                This is used to source an Environment for BUSCO as the BUSCO 
+                Config Does Still Requires AUGUSTUS Environment variables be set
+                ''')
         logger.info('Target type looks like {}'.format(self.target_type))
         self.get_targets()
 #        logger.debug(''.format(self.target_objects))
@@ -273,6 +281,43 @@ class Detector:
         my_file.write(json.dumps(self.write_me))
         my_file.close()
 
+    def run_busco(self, mode, file_name):
+        '''Runs BUSCO using BUSCO_ENV_FILE env var and input
+
+           and outputs to file_name
+        '''
+        logger = self.logger  # set logging
+        node_data = self.node_data  # get current targets nodes
+        busco_parse = re.compile('C:(.+)\%\[S:(.+)\%,D:(.+)\%\],F:(.+)\%,M:(.+)\%,n:(\d+)')
+        output = '{}.busco'.format('.'.join(file_name.split('.')[:-2]))
+        cmd = 'run_BUSCO.py --mode {} --lineage {}'.format(mode, 'lineage')
+        outdir = './run_{}'.format(output)  # output from BUSCO
+        short_summary = glob(outdir + '/short_summary*.busco.txt')
+        if not short_summary:
+            logger.error('BUSCO short summary not found for {}'.format(outdir))
+            sys.exit(1)
+        short_summary = short_summary[0]
+        with open(short_summary) as fopen:
+            for line in fopen:
+                line = line.rstrip()
+                if line.startswith('#') or not line:
+                    continue
+                if line.startswith('\tC:'):
+                    line = line.replace('\t', '')
+                    percentages = busco_parse.search(line)  # read summary
+                    total = int(percentages.group(6))
+                    complete = float(percentages.group(1))
+                    frag = float(percentages.group(4))
+                    single = float(percentages.group(2))
+                    duplicate = float(percentages.group(3))
+                    missing = float(percentages.group(5))
+                    node_data['busco'] = {'total_buscos': total, #  node BUSCO
+                                          'complete_buscos': complete,
+                                          'fragmented_buscos': frag,
+                                          'single_copy_buscos': single,
+                                          'duplicate_buscos': duplicate,
+                                          'missing_buscos': missing}
+
     def detect_incongruencies(self):
         '''Detects all incongruencies in self.target_objects
         
@@ -288,9 +333,9 @@ class Detector:
         targets = self.target_objects  # get objects from class init
         for reference in targets:
             self.target = reference
-            ref_method = getattr(specification_checks, 
-                                 targets[reference]['type'])
-            if not ref_method:
+            ref_method = getattr(specification_checks,  # reads checks from spec
+                                 targets[reference]['type'])  # type ex genome_main
+            if not ref_method:  # if the target isnt in the hierarchy continue
                 logger.error('Check for {} does not exist'.format(
                                                 targets[reference]['type']))
                 continue
@@ -299,16 +344,21 @@ class Detector:
             passed = my_detector.run()
             if passed:  # validation passed writing object node for DSCensor
                 self.passed[reference] = 1
-                self.write_me = targets[reference]['node_data']
-                self.write_node_object()
+                self.node_data = targets[reference]['node_data']
+                if targets[reference]['type'] == 'genome_main':  # BUSCO
+                    file_name = targets[reference]['node_data']['filename']
+                    if not self.options.get('no_busco'):
+                        self.run_busco('genome', file_name)
+                self.write_me = targets[reference]['node_data']  # dscensor node
+                self.write_node_object()  # write node for dscensor loading
             logger.debug('{}'.format(targets[reference]))
             if self.target_objects[reference]['children']:  # process children
                 children = self.target_objects[reference]['children']
                 for c in children:
                     logger.info('Performing Checks for {}'.format(c))
                     self.target = c
-                    child_method = getattr(specification_checks,
-                                           children[c]['type'])
+                    child_method = getattr(specification_checks,  # check for spec
+                                           children[c]['type'])  # exgene_models_main
                     if not child_method:
                         logger.error('Check for {} does not exist'.format(
                                                          children[c]['type']))
