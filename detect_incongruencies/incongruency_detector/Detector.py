@@ -24,7 +24,7 @@ class Detector:
     '''
     def __init__(self, target, **kwargs):
         '''Check for logger, check for gt'''
-        subprocess.check_call('gt -help', shell=True)  # check for gt in env
+        subprocess.check_call('which gt', shell=True)  # check for gt in env
         self.options = kwargs
         self.checks = {}  # object that determines which checks are skipped
         self.checks['genome_main'] = kwargs.get('disable_genome_main', True)
@@ -38,6 +38,7 @@ class Detector:
                                 'ADDMORESTUFF']  #  types for detector
         self.canonical_parents = {'genome_main': None,
                                   'gene_models_main': 'genome_main'}
+        self.rank = {'genome_main': 0, 'gene_models_main': 1}
         self.log_level = kwargs.get('log_level', 'INFO')
         self.log_file = kwargs.get('log_file', './incongruencies.log')
         self.output_prefix = kwargs.get('output_prefix', './incongruencies')
@@ -57,13 +58,13 @@ class Detector:
             logger.error('Target type not recognized for {}'.format(
                                                                   self.target))
             sys.exit(1)
-        if not os.environ.get('BUSCO_ENV_FILE', None) and not kwargs.get('no_busco'):
-            logger.error('''
-                BUSCO_ENV_File Must Be set, please export
-
-                This is used to source an Environment for BUSCO as the BUSCO 
-                Config Does Still Requires AUGUSTUS Environment variables be set
-                ''')
+        #if not os.environ.get('BUSCO_ENV_FILE', None) and not kwargs.get('no_busco'):
+        #    logger.error('''
+        #        BUSCO_ENV_File Must Be set, please export
+#
+#                This is used to source an Environment for BUSCO as the BUSCO 
+#                Config Does Still Requires AUGUSTUS Environment variables be set
+#                ''')
         logger.info('Target type looks like {}'.format(self.target_type))
         self.get_targets()
 #        logger.debug(''.format(self.target_objects))
@@ -165,12 +166,12 @@ class Detector:
             sys.exit(1)
         target_attributes = self.target_name.split('.')
         if len(target_attributes) < 3 or self.target_name[0] == '_':
-            logger.error('File {} does not seem to have attributes'.format(
+            logger.warning('File {} does not seem to have attributes'.format(
                                                                       target))
             return
         canonical_type = target_attributes[-3]  # check content type
         if canonical_type not in self.canonical_types:  # regject
-            logger.error('Type {} not recognized in {}.  Skipping'.format(
+            logger.warning('Type {} not recognized in {}.  Skipping'.format(
                                                           canonical_type,
                                                     self.canonical_types))
             return
@@ -331,12 +332,12 @@ class Detector:
         '''
         logger = self.logger
         targets = self.target_objects  # get objects from class init
-        for reference in targets:
+        for reference in sorted(targets, key=lambda k:self.rank[targets[k]['type']]):
             self.target = reference
             ref_method = getattr(specification_checks,  # reads checks from spec
                                  targets[reference]['type'])  # type ex genome_main
             if not ref_method:  # if the target isnt in the hierarchy continue
-                logger.error('Check for {} does not exist'.format(
+                logger.warning('Check for {} does not exist'.format(
                                                 targets[reference]['type']))
                 continue
             logger.debug(ref_method)
@@ -345,12 +346,12 @@ class Detector:
             if passed:  # validation passed writing object node for DSCensor
                 self.passed[reference] = 1
                 self.node_data = targets[reference]['node_data']
-                if targets[reference]['type'] == 'genome_main':  # BUSCO
-                    file_name = targets[reference]['node_data']['filename']
-                    if not self.options.get('no_busco'):
-                        self.run_busco('genome', file_name)
-                self.write_me = targets[reference]['node_data']  # dscensor node
-                self.write_node_object()  # write node for dscensor loading
+#                if targets[reference]['type'] == 'genome_main':  # BUSCO
+#                    file_name = targets[reference]['node_data']['filename']
+#                    if not self.options.get('no_busco'):
+#                        self.run_busco('genome', file_name)
+#                self.write_me = targets[reference]['node_data']  # dscensor node
+#                self.write_node_object()  # write node for dscensor loading
             logger.debug('{}'.format(targets[reference]))
             if self.target_objects[reference]['children']:  # process children
                 children = self.target_objects[reference]['children']
@@ -360,7 +361,7 @@ class Detector:
                     child_method = getattr(specification_checks,  # check for spec
                                            children[c]['type'])  # exgene_models_main
                     if not child_method:
-                        logger.error('Check for {} does not exist'.format(
+                        logger.warning('Check for {} does not exist'.format(
                                                          children[c]['type']))
                         continue
                     logger.debug(child_method)

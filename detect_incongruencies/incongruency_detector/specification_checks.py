@@ -19,8 +19,6 @@ class genome_main:
         self.detector = detector
         self.target = detector.target
         self.logger = detector.logger
-        self.fasta_ids = {}
-        detector.fasta_ids = self.fasta_ids
 
     def run(self):
         '''Runs checks'''
@@ -85,8 +83,6 @@ class genome_main:
         logger = self.logger
         fasta = self.target  # get fasta file
         attr = os.path.basename(fasta).split('.')  # get attributes for naming
-        self.fasta_ids = {}  # initialize fasta ids for self
-        f_ids = self.fasta_ids  # set to overwrite for each reference
         true_header = '.'.join(attr[:3])
         fh = return_filehandle(fasta)  # get file handle, text/gz
         re_header = re.compile("^>(\S+)\s*(.*)")  # grab header and description
@@ -108,7 +104,7 @@ class genome_main:
                         logger.error('Header {} looks odd...'.format(line))
                         sys.exit(1)
                     logger.debug(hid)
-                    f_ids[hid] = 1
+                    self.detector.fasta_ids[hid] = 1
                     standard_header = true_header + '.' + hid
                     if not hid.startswith(true_header):
                         logger.warning(('Inconsistency {} '.format(hid) +
@@ -232,6 +228,8 @@ class gene_models_main:
         true_name = file_name.split('.')[0]  # maybe this should include infra
         get_id_name = re.compile("^ID=(.+?);.*Name=(.+?);")
         lines = 0
+        seen = {}
+        passed = True
         with fh as gopen:
             for line in gopen:
                 line = line.rstrip()
@@ -246,8 +244,11 @@ class gene_models_main:
                 if self.fasta_ids:  # if genome_main make sure seqids exist
                     if not seqid in fasta_ids:  # fasta header check
                         logger.debug(seqid)
-                        logger.error('{} not found in genome_main'.format(
+                        if not seqid in seen:
+                            logger.error('{} not found in genome_main'.format(
                                                                         seqid))
+                            seen[seqid] = 1
+                        passed = False
                 feature_type = columns[3]  # get type
                 attributes = columns[8]  # attributes ';' delimited
                 if feature_type != 'gene':  # only check genes (for now)
@@ -255,19 +256,23 @@ class gene_models_main:
                 if not get_id_name.match(attributes):  # check for ID and Name
                     logger.error('No ID and Name attributes. line {}'.format(
                                                                         lines))
+                    passed = False
                 else:
                     groups = get_id_name.search(attributes).groups()
                     if len(groups) != 2:  # should just be ID and Name
                         logger.error('too many groups detected: {}'.format(
                                                                       groups))
+                        passed = False
                     (feature_id, feature_name) = groups
                     if not feature_id.startswith(true_id):  # check id
                         logger.error('feature id, should start with ' +
                                      '{} line {}'.format(true_id, lines))
+                        passed = False
                     if not feature_name.startswith(true_name):
                         logger.error('feature name, should start with ' +
                                      '{} line {}'.format(true_name, lines))
-        return True
+                        passed = False
+        return passed
 
 
 class readme_md:  # need to populate this correctly later

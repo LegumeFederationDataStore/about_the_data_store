@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
 import os, sys
-import logging
 import gzip
+import errno
+import logging
 
 
 def return_filehandle(open_me):
@@ -34,6 +35,15 @@ def check_file(f):
     except OSError:
         raise
     return os.path.isfile(f)
+
+
+def create_directories(dirpath):
+    '''make directory path'''
+    try:
+        os.makedirs(dirpath)
+    except OSError as e:
+        if e.errno != errno.EEXIST:  # ignore if error is exists else raise
+            raise
 
 
 if __name__ == '__main__':
