@@ -105,9 +105,9 @@ class Detector:
         if target_name.endswith('.gz'):  # all datastore files end in .gz
             self.target_type = 'file'
         elif(len(target_name.split('_')) == 2 and \
-             len(target_name.split('.')) < 4):
+             len(target_name.split('.')) < 3):
             self.target_type = 'organism_dir'  # will always be Genus_species
-        elif len(target_name.split('.')) >= 4:  # standard naming minimum
+        elif len(target_name.split('.')) >= 3:  # standard naming minimum
             self.target_type = 'data_dir'
 
     def get_targets(self):

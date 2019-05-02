@@ -48,30 +48,30 @@ class genome_main:
         attr = os.path.basename(target).split('.')  # split on delimiter
         if len(attr) != 7:  # should be 7 fields
             logger.error('File did not have 7 fields! {}'.format(attr))
-            sys.exit(1)
+            return False
         if len(attr[0]) != 5:  # should be 5 letter prefix
             logger.error('File must have 5 letter prefix, not {}'.format(
                                                                     attr[0]))
-            sys.exit(1)
+            return False
         if not attr[2].startswith('gnm'):  # should be gnm type
             logger.error('File should have gnm in field 3, not {}'.format(
                                                                      attr[2]))
-            sys.exit(1)
+            return False
         gnm_v = attr[2].replace('gnm', '')
         try:
             int(gnm_v)
         except ValueError:  # best way to check for int in python2
             logger.error('gnm version must be integer not {}'.format(gnm_v))
-            sys.exit(1)
+            return False
         if (len(gnm_v.split('.')) > 1):  # check for float
             logger.error('gnm version must be integer not {}'.format(gnm_v))
-            sys.exit(1)
+            return False
         if not attr[5] == 'fna':  # should be fna type
             logger.error('File should be fna not {}'.format(attr[5]))
-            sys.exit(1)
+            return False
         if not attr[6] == 'gz':  # should be gzip compressed
             logger.error('Last field should be gz, not {}'.format(attr[6]))
-            sys.exit(1)
+            return False
         logger.info('Genome Naming Looks Correct')
         return True
 
@@ -102,7 +102,7 @@ class genome_main:
                             hid = hid.groups(0)[0]  # get id portion of header
                     else:
                         logger.error('Header {} looks odd...'.format(line))
-                        sys.exit(1)
+                        return False
                     logger.debug(hid)
                     self.detector.fasta_ids[hid] = 1
                     standard_header = true_header + '.' + hid
@@ -155,43 +155,43 @@ class gene_models_main:
         attr = os.path.basename(target).split('.')  # split on delimiter 
         if len(attr) != 8:  # should be 8 fields
             logger.error('File did not have 7 fields! {}'.format(attr))
-            sys.exit(1)
+            return False
         if len(attr[0]) != 5:  # should be 5 letter prefix
             logger.error('File must have 5 letter prefix, not {}'.format(
                                                                     attr[0]))
-            sys.exit(1)
+            return False
         if not attr[2].startswith('gnm'):  # should be gnm type
             logger.error('File should have gnm in field 3, not {}'.format(
                                                                      attr[2]))
-            sys.exit(1)
+            return False
         gnm_v = attr[2].replace('gnm', '')
         try:
             int(gnm_v)
         except ValueError:  # best way to check for int in python2
             logger.error('gnm version must be integer not {}'.format(gnm_v))
-            sys.exit(1)
+            return False
         if (len(gnm_v.split('.')) > 1):  # check for float
             logger.error('gnm version must be integer not {}'.format(gnm_v))
-            sys.exit(1)
+            return False
         if not attr[3].startswith('ann'):  # should be gnm type
             logger.error('File should have ann in field 4, not {}'.format(
                                                                      attr[2]))
-            sys.exit(1)
+            return False
         ann_v = attr[3].replace('ann', '')
         try:
             int(ann_v)
         except ValueError:  # best way to check for int in python2
             logger.error('ann version must be integer not {}'.format(ann_v))
-            sys.exit(1)
+            return False
         if (len(ann_v.split('.')) > 1):  # check for float
             logger.error('ann version must be integer not {}'.format(gnm_v))
-            sys.exit(1)
+            return False
         if not attr[6] == 'gff3':  # should be gff3 type
             logger.error('File should be gff3 not {}'.format(attr[6]))
-            sys.exit(1)
+            return False
         if not attr[7] == 'gz':  # should be gzip compressed
             logger.error('Last field should be gz, not {}'.format(attr[6]))
-            sys.exit(1)
+            return False
         return True
 
     def gt_gff3_validate(self):
