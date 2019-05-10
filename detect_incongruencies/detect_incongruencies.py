@@ -13,7 +13,7 @@ from incongruency_detector.Normalizer import Normalizer
 @click.option('--target', multiple=True,
               help='''TARGETS can be files or directories or both''')
 @click.option('--no_busco', is_flag=True,
-              help='''TARGETS can be files or directories or both''')
+              help='''Disable BUSCO''')
 @click.option('--normalize', is_flag=True,
               help='''Converts input files into data store standard''')
 @click.option('--gnm', metavar = '<gnm#>',

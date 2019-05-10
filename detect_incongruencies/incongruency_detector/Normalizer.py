@@ -299,13 +299,14 @@ Minimum requirements for normalizer are:
         if file_type in fasta:
             logger.info('Target is a FASTA file formatting and indexing...')
             new_file = self.normalize_fasta()  # returns path to new file
-            logger.info('Sorting done, indexing {}'.format(new_file))
+            logger.info('Normalizing done, indexing {}'.format(new_file))
             new_file = self.index_fasta(new_file)
             logger.info('Indexing done, final file: {}'.format(new_file))
         if file_type in gff3:
             logger.info('Target is a gff3 file formatting and indexing...')
             new_file = self.normalize_gff3()  # returns path to new file
-            logger.info('Sorting done, indexing {}'.format(new_file))
+            logger.info('Sorting and Normalizing done, indexing {}'.format(
+                                                                    new_file))
             new_file = self.index_gff3(new_file)
             logger.info('Indexing done, final file: {}'.format(new_file))
         if not new_file:

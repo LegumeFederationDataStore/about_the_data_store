@@ -166,12 +166,12 @@ class Detector:
             sys.exit(1)
         target_attributes = self.target_name.split('.')
         if len(target_attributes) < 3 or self.target_name[0] == '_':
-            logger.warning('File {} does not seem to have attributes'.format(
+            logger.debug('File {} does not seem to have attributes'.format(
                                                                       target))
             return
         canonical_type = target_attributes[-3]  # check content type
         if canonical_type not in self.canonical_types:  # regject
-            logger.warning('Type {} not recognized in {}.  Skipping'.format(
+            logger.debug('Type {} not recognized in {}.  Skipping'.format(
                                                           canonical_type,
                                                     self.canonical_types))
             return
@@ -337,7 +337,7 @@ class Detector:
             ref_method = getattr(specification_checks,  # reads checks from spec
                                  targets[reference]['type'])  # type ex genome_main
             if not ref_method:  # if the target isnt in the hierarchy continue
-                logger.warning('Check for {} does not exist'.format(
+                logger.debug('Check for {} does not exist'.format(
                                                 targets[reference]['type']))
                 continue
             logger.debug(ref_method)
@@ -350,8 +350,8 @@ class Detector:
 #                    file_name = targets[reference]['node_data']['filename']
 #                    if not self.options.get('no_busco'):
 #                        self.run_busco('genome', file_name)
-#                self.write_me = targets[reference]['node_data']  # dscensor node
-#                self.write_node_object()  # write node for dscensor loading
+                self.write_me = targets[reference]['node_data']  # dscensor node
+                self.write_node_object()  # write node for dscensor loading
             logger.debug('{}'.format(targets[reference]))
             if self.target_objects[reference]['children']:  # process children
                 children = self.target_objects[reference]['children']
