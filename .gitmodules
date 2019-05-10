@@ -1,0 +1,3 @@
+[submodule "detect_incongruencies/incongruency_detector/seqtools2"]
+	path = detect_incongruencies/incongruency_detector/seqtools2
+	url = https://github.com/ncgr/seqtools2.git

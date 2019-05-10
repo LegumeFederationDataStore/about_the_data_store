@@ -1,0 +1,2 @@
+export LANG="en_US.UTF-8"
+export PATH=/home/ccameron/detect_incongruencies/genometools/gt-1.5.10-Linux_x86_64-64bit-barebone/bin:$PATH

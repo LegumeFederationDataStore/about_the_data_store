@@ -1,0 +1,49 @@
+check_genome_main
+    1, '.' delimits file name attributes
+    2. Filename must have 7 attributes
+        a. Attribute 1 should be the 5-letter organism prefix
+        b. Attribute 2 should be infraspecific identifier
+        c. Attribute 3 should eb gnm<#>
+            i. <#> must be an interger
+        d. Atrribute 4 should be the unique KEY
+        e. Attribute 5 should be genome_main
+        f. Attribute 6 should be fna
+        g. Attribute 7 should be gz
+        
+    
+check_genome_fasta
+    1. Header IDs must be '.' delimited
+    2. Header IDs must start with the first 3 attributes from genome_main
+        a. 5-letter organism prefix
+        b. Infraspecific identifier
+        c. gnm<#>
+
+
+check_gene_models_main
+    1, '.' delimits file name attributes
+    2. Filename must have 8 attributes
+        a. Attribute 1 should be the 5-letter organism prefix
+        b. Attribute 2 should be infraspecific identifier
+        c. Attribute 3 should eb gnm<#>
+            i. <#> must be an interger
+        d. Attribute 4 should be ann<#>
+            i. <#> must be an interger
+        e. Atrribute 5 should be the unique KEY
+        f. Attribute 6 should be gene_models_main
+        g. Attribute 7 should be gff3
+        h. Attribute 8 should be gz
+
+
+gt_gff3_validate
+    1. Gff3 file must validate through gt gff3validate
+    
+
+check_seqid_attributes
+    1. Field 1, the chr field, must exist in the FASTA file as an ID
+    2. ID and Name Gff3 attributes should be provided in the INFO field, field 8
+    3. ID should start with the first four fields of the gff3 file name
+        a. 5-letter organism prefix
+        b. Infraspecific identifier
+        c. gnm<#>
+        d. ann<#>
+    4. Name should start with the 5-letter organism prefix
