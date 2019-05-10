@@ -140,7 +140,7 @@ class Detector:
         for root, directories, filenames in os.walk(target):
             for filename in filenames:  # we only care about the files
                 my_target = os.path.join(root, filename)  # make path
-                logger.info('Checking file {}'.format(my_target))
+                logger.debug('Checking file {}'.format(my_target))
                 self.target = my_target  # set target
                 self.target_name = os.path.basename(self.target)
                 self.add_target_object()  # add target if canonical
@@ -183,7 +183,7 @@ class Detector:
         target_format = target_attributes[-2]  # get gff, fna, faa all gx
         target_key = target_attributes[-4]  # get key
         target_ref_type = self.canonical_parents[canonical_type]
-        logger.info('Getting target files reference if necessary...')
+        logger.debug('Getting target files reference if necessary...')
         file_type = self.get_target_file_type(self.target_name)
         file_url = '{}/{}/{}/{}'.format(self.domain, organism_dir,
                                         target_dir, self.target_name)
@@ -200,7 +200,7 @@ class Detector:
                'derived_from' : [],
                'child_of' : []}
         if len(target_attributes) > 7 and target_ref_type:  # check parent
-            logger.info('Target Derived from Some Reference Searching...')
+            logger.debug('Target Derived from Some Reference Searching...')
             ref_glob = '{}/{}*/*{}.*.gz'.format(organism_dir_path, 
                                       '.'.join(target_attributes[1:3]),
                                       target_ref_type)
@@ -245,7 +245,7 @@ class Detector:
             if target_ref_type:
                 logger.error('Reference was not found or file has <=7 fields')
                 sys.exit(1)
-            logger.info('Target has no Parent, it is a Reference')
+            logger.debug('Target has no Parent, it is a Reference')
             if not target in self.target_objects:
                 self.target_objects[target] = {'type': canonical_type,
                                                'node_data' : target_node_object,
@@ -265,7 +265,7 @@ class Detector:
         if not os.path.isfile(reference):  # if cannot find reference file
             logger.error('Could not find main target {}'.format(reference))
             sys.exit(1)
-        logger.info('Found reference {}'.format(reference))
+        logger.debug('Found reference {}'.format(reference))
         return reference
 
     def write_node_object(self):
@@ -350,8 +350,8 @@ class Detector:
 #                    file_name = targets[reference]['node_data']['filename']
 #                    if not self.options.get('no_busco'):
 #                        self.run_busco('genome', file_name)
-                self.write_me = targets[reference]['node_data']  # dscensor node
-                self.write_node_object()  # write node for dscensor loading
+                #self.write_me = targets[reference]['node_data']  # dscensor node
+                #self.write_node_object()  # write node for dscensor loading
             logger.debug('{}'.format(targets[reference]))
             if self.target_objects[reference]['children']:  # process children
                 children = self.target_objects[reference]['children']
