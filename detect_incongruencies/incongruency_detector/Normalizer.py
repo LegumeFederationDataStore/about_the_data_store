@@ -65,7 +65,6 @@ Minimum requirements for normalizer are:
                                                        'rt'))
             for k in readme_specification:
                 logger.debug('{}: {}'.format(k, readme_specification[k]))
-            sys.exit(1)
         self.gensp = '{}{}'.format(self.genus[:3].lower(), 
                                    self.species[:2].lower())
 #        self.fasta_ids = {}

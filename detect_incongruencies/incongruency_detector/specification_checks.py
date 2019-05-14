@@ -225,9 +225,10 @@ class gene_models_main:
         logger.debug(fasta_ids)
         fh = return_filehandle(gff)
         file_name = os.path.basename(gff)
-        true_id = file_name.split('.')[:4]  # ID should start with this string
+        true_id = '.'.join(file_name.split('.')[:4])  # ID should start with this string
         true_name = file_name.split('.')[0]  # maybe this should include infra
-        get_id_name = re.compile("^ID=(.+?);.*Name=(.+?);")
+#        get_id_name = re.compile("^ID=(.+?);.*Name=(.+?);")
+        get_id = re.compile('ID=([^;]+)')
         lines = 0
         seen = {}
         passed = True
@@ -250,29 +251,33 @@ class gene_models_main:
                                                                         seqid))
                             seen[seqid] = 1
                         passed = False
-                feature_type = columns[3]  # get type
+                feature_type = columns[2]  # get type
                 attributes = columns[8]  # attributes ';' delimited
+                logger.debug(feature_type)
                 if feature_type != 'gene':  # only check genes (for now)
                     continue
-                if not get_id_name.match(attributes):  # check for ID and Name
+#                if not get_id_name.match(attributes):  # check for ID and Name
+                if not get_id.search(attributes):  # check for ID and Name
                     logger.error('No ID and Name attributes. line {}'.format(
                                                                         lines))
                     passed = False
                 else:
-                    groups = get_id_name.search(attributes).groups()
-                    if len(groups) != 2:  # should just be ID and Name
-                        logger.error('too many groups detected: {}'.format(
-                                                                      groups))
-                        passed = False
-                    (feature_id, feature_name) = groups
+#                    groups = get_id_name.search(attributes).groups()
+                    feature_id = get_id.search(attributes).group(1)
+                    logger.debug(feature_id)
+#                    if len(groups) != 2:  # should just be ID and Name
+#                        logger.error('too many groups detected: {}'.format(
+#                                                                      groups))
+#                        passed = False
+#                    (feature_id, feature_name) = groups
                     if not feature_id.startswith(true_id):  # check id
-                        logger.error('feature id, should start with ' +
+                        logger.error('gene feature id, should start with ' +
                                      '{} line {}'.format(true_id, lines))
                         passed = False
-                    if not feature_name.startswith(true_name):
-                        logger.error('feature name, should start with ' +
-                                     '{} line {}'.format(true_name, lines))
-                        passed = False
+#                    if not feature_name.startswith(true_name):
+#                        logger.error('feature name, should start with ' +
+#                                     '{} line {}'.format(true_name, lines))
+#                        passed = False
         return passed
 
 
