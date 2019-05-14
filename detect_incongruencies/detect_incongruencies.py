@@ -54,6 +54,10 @@ def main(target, no_busco, normalize, gnm, ann, genus, species, infra_id, unique
     if not target:
         print('Must specify at least one --target.  Run with --help for usage')
         sys.exit(1)
+    data_store_home = os.path.dirname(os.path.dirname(
+                                                   os.path.abspath(__file__)))
+    print(data_store_home)
+    sys.exit(1)
     options = {'log_level': log_level, 'log_file': log_file,
                'no_busco': no_busco, 'gnm': gnm, 'ann': ann, 'genus': genus,
                'species': species, 'infra_id': infra_id, 

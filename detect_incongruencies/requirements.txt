@@ -6,5 +6,6 @@ idna==2.7
 intervaltree==2.1.0
 numpy==1.16.1
 requests==2.19.1
+ruamel.yaml==0.15.94
 sortedcontainers==1.5.10
 urllib3==1.23

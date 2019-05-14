@@ -222,6 +222,7 @@ class gene_models_main:
         gff = self.target
         logger = self.logger
         fasta_ids = self.fasta_ids  # list of FASTA IDS from Reference
+        logger.debug(fasta_ids)
         fh = return_filehandle(gff)
         file_name = os.path.basename(gff)
         true_id = file_name.split('.')[:4]  # ID should start with this string
