@@ -6,6 +6,7 @@ import logging
 import re
 import subprocess
 import gzip
+from ruamel.yaml import YAML
 from .helper import check_file, return_filehandle, create_directories
 
 
@@ -31,6 +32,9 @@ class Normalizer:
         self.species = kwargs.get('species')
         self.infra_id = kwargs.get('infra_id')
         self.unique_key = kwargs.get('unique_key')
+        self.readme_tempalte = kwargs.get('readme_template')
+        self.yaml=YAML(typ='safe')   # round-trip default
+        self.readme_specification = ''  # will be filled if yaml validates
         if not kwargs.get('logger'):
             msg_format = '%(asctime)s|%(name)s|[%(levelname)s]: %(message)s'
             logging.basicConfig(format=msg_format, datefmt='%m-%d %H:%M',
@@ -44,7 +48,6 @@ class Normalizer:
             self.logger = logger
         else:
             self.logger = kwargs.get('logger')
-
         if not self.gnm or not self.species or not self.genus or not self.unique_key or not self.infra_id:
             error_message = '''
 Minimum requirements for normalizer are:
@@ -54,6 +57,14 @@ Minimum requirements for normalizer are:
     ann is specified if file is gff3
 '''
             self.logger.error(error_message)
+            sys.exit(1)
+        if check_file(self.readme_template):
+            logger.info('Checking README Speficiation: {}'.format(
+                                                        self.readme_template))
+            self.readme_specification = yaml.load(open(self.readme_template, 
+                                                       'rt'))
+            for k in readme_specification:
+                logger.debug('{}: {}'.format(k, readme_specification[k]))
             sys.exit(1)
         self.gensp = '{}{}'.format(self.genus[:3].lower(), 
                                    self.species[:2].lower())
