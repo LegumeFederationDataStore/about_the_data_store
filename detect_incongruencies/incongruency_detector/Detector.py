@@ -350,6 +350,7 @@ class Detector:
 #                    file_name = targets[reference]['node_data']['filename']
 #                    if not self.options.get('no_busco'):
 #                        self.run_busco('genome', file_name)
+#                logger.info('Writing node object for {}'.format(c))
                 #self.write_me = targets[reference]['node_data']  # dscensor node
                 #self.write_node_object()  # write node for dscensor loading
             logger.debug('{}'.format(targets[reference]))
@@ -369,6 +370,7 @@ class Detector:
                     passed = my_detector.run()
                     if passed:  # validation passed writing object node for DSCensor
                         self.passed[reference] = 1
+                        logger.info('Writing node object for {}'.format(c))
                         self.write_me = children[c]['node_data']
                         self.write_node_object()
                     logger.debug('{}'.format(c))
