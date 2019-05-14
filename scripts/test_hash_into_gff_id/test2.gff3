@@ -1,0 +1,15 @@
+Arahy.17	maker	gene	43021034	43031065	.	-	.	ID=maker-Arahy.17-snap-gene-43.4;Name=maker-Arahy.17-snap-gene-43.4
+Arahy.17	maker	mRNA	43021034	43031065	.	-	.	ID=maker-Arahy.17-snap-gene-43.4-mRNA-1;Parent=maker-Arahy.17-snap-gene-43.4;Name=maker-Arahy.17-snap-gene-43.4-mRNA-1;_AED=0.40;_eAED=0.40;_QI=429|0|0.33|0.66|0|0.33|3|0|20
+Arahy.17	maker	exon	43021034	43021039	.	-	.	ID=maker-Arahy.17-snap-gene-43.4-mRNA-1:exon:10141;Parent=maker-Arahy.17-snap-gene-43.4-mRNA-1
+Arahy.17	maker	CDS	43021034	43021039	.	-	0	ID=maker-Arahy.17-snap-gene-43.4-mRNA-1:cds;Parent=maker-Arahy.17-snap-gene-43.4-mRNA-1
+Arahy.17	maker	CDS	43021299	43021352	.	-	0	ID=maker-Arahy.17-snap-gene-43.4-mRNA-1:cds;Parent=maker-Arahy.17-snap-gene-43.4-mRNA-1
+Arahy.17	maker	exon	43021299	43021367	.	-	.	ID=maker-Arahy.17-snap-gene-43.4-mRNA-1:exon:10140;Parent=maker-Arahy.17-snap-gene-43.4-mRNA-1
+Arahy.17	maker	five_prime_UTR	43021353	43021367	.	-	.	ID=maker-Arahy.17-snap-gene-43.4-mRNA-1:five_prime_utr;Parent=maker-Arahy.17-snap-gene-43.4-mRNA-1
+Arahy.17	maker	five_prime_UTR	43030652	43031065	.	-	.	ID=maker-Arahy.17-snap-gene-43.4-mRNA-1:five_prime_utr;Parent=maker-Arahy.17-snap-gene-43.4-mRNA-1
+Arahy.17	maker	mRNA	43021115	43031065	.	-	.	ID=maker-Arahy.17-snap-gene-43.4-mRNA-2;Parent=maker-Arahy.17-snap-gene-43.4;Name=maker-Arahy.17-snap-gene-43.4-mRNA-2;_AED=0.35;_eAED=0.35;_QI=429|0|1|1|0|1|2|139|32
+Arahy.17	maker	three_prime_UTR	43021115	43021253	.	-	.	ID=maker-Arahy.17-snap-gene-43.4-mRNA-2:three_prime_utr;Parent=maker-Arahy.17-snap-gene-43.4-mRNA-2
+Arahy.17	maker	exon	43021115	43021367	.	-	.	ID=maker-Arahy.17-snap-gene-43.4-mRNA-2:exon:10142;Parent=maker-Arahy.17-snap-gene-43.4-mRNA-2
+Arahy.17	maker	CDS	43021254	43021352	.	-	0	ID=maker-Arahy.17-snap-gene-43.4-mRNA-2:cds;Parent=maker-Arahy.17-snap-gene-43.4-mRNA-2
+Arahy.17	maker	five_prime_UTR	43021353	43021367	.	-	.	ID=maker-Arahy.17-snap-gene-43.4-mRNA-2:five_prime_utr;Parent=maker-Arahy.17-snap-gene-43.4-mRNA-2
+Arahy.17	maker	exon	43030652	43031065	.	-	.	ID=maker-Arahy.17-snap-gene-43.4-mRNA-1:exon:10139;Parent=maker-Arahy.17-snap-gene-43.4-mRNA-1,maker-Arahy.17-snap-gene-43.4-mRNA-2
+Arahy.17	maker	five_prime_UTR	43030652	43031065	.	-	.	ID=maker-Arahy.17-snap-gene-43.4-mRNA-2:five_prime_utr;Parent=maker-Arahy.17-snap-gene-43.4-mRNA-2

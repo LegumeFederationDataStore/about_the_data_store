@@ -1,0 +1,8 @@
+scaffold_92	maker	gene	31828	32064	.	+	.	ID=maker-scaffold_92-snap-gene-0.2;Name=maker-scaffold_92-snap-gene-0.2
+scaffold_92	maker	mRNA	31828	32064	.	+	.	ID=maker-scaffold_92-snap-gene-0.2-mRNA-1;Parent=maker-scaffold_92-snap-gene-0.2;Name=maker-scaffold_92-snap-gene-0.2-mRNA-1;_AED=0.19;_eAED=1.00;_QI=24|0|0|1|0|0|2|135|15
+scaffold_92	maker	five_prime_UTR	31828	31851	.	+	.	ID=maker-scaffold_92-snap-gene-0.2-mRNA-1:five_prime_utr;Parent=maker-scaffold_92-snap-gene-0.2-mRNA-1
+scaffold_92	maker	exon	31828	31982	.	+	.	ID=maker-scaffold_92-snap-gene-0.2-mRNA-1:exon:2234;Parent=maker-scaffold_92-snap-gene-0.2-mRNA-1
+scaffold_92	maker	CDS	31852	31899	.	+	0	ID=maker-scaffold_92-snap-gene-0.2-mRNA-1:cds;Parent=maker-scaffold_92-snap-gene-0.2-mRNA-1
+scaffold_92	maker	three_prime_UTR	31900	31982	.	+	.	ID=maker-scaffold_92-snap-gene-0.2-mRNA-1:three_prime_utr;Parent=maker-scaffold_92-snap-gene-0.2-mRNA-1
+scaffold_92	maker	exon	32013	32064	.	+	.	ID=maker-scaffold_92-snap-gene-0.2-mRNA-1:exon:2235;Parent=maker-scaffold_92-snap-gene-0.2-mRNA-1
+scaffold_92	maker	three_prime_UTR	32013	32064	.	+	.	ID=maker-scaffold_92-snap-gene-0.2-mRNA-1:three_prime_utr;Parent=maker-scaffold_92-snap-gene-0.2-mRNA-1

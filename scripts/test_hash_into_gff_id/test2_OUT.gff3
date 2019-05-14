@@ -1,0 +1,7 @@
+Arahy.17	maker	gene	43021034	43031065	.	-	.	ID=arahy.Tifrunner.gnm1.ann1.3V1LC9;Name=arahy.Tifrunner.gnm1.ann1.3V1LC9;
+Arahy.17	maker	mRNA	43021115	43031065	.	-	.	ID=arahy.Tifrunner.gnm1.ann1.3V1LC9-mRNA-2;Parent=arahy.Tifrunner.gnm1.ann1.3V1LC9;Name=arahy.Tifrunner.gnm1.ann1.3V1LC9-mRNA-2;_AED=0.35;_eAED=0.35;_QI=429|0|1|1|0|1|2|139|32;
+Arahy.17	maker	three_prime_UTR	43021115	43021253	.	-	.	ID=arahy.Tifrunner.gnm1.ann1.3V1LC9-mRNA-2:three_prime_utr;Parent=arahy.Tifrunner.gnm1.ann1.3V1LC9-mRNA-2;
+Arahy.17	maker	exon	43021115	43021367	.	-	.	ID=arahy.Tifrunner.gnm1.ann1.3V1LC9-mRNA-2:exon:10142;Parent=arahy.Tifrunner.gnm1.ann1.3V1LC9-mRNA-2;
+Arahy.17	maker	CDS	43021254	43021352	.	-	0	ID=arahy.Tifrunner.gnm1.ann1.3V1LC9-mRNA-2:cds;Parent=arahy.Tifrunner.gnm1.ann1.3V1LC9-mRNA-2;
+Arahy.17	maker	five_prime_UTR	43021353	43021367	.	-	.	ID=arahy.Tifrunner.gnm1.ann1.3V1LC9-mRNA-2:five_prime_utr;Parent=arahy.Tifrunner.gnm1.ann1.3V1LC9-mRNA-2;
+Arahy.17	maker	five_prime_UTR	43030652	43031065	.	-	.	ID=arahy.Tifrunner.gnm1.ann1.3V1LC9-mRNA-2:five_prime_utr;Parent=arahy.Tifrunner.gnm1.ann1.3V1LC9-mRNA-2;
