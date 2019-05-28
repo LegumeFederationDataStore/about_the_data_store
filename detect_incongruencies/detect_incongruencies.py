@@ -16,9 +16,9 @@ from incongruency_detector.Normalizer import Normalizer
               help='''Disable BUSCO''')
 @click.option('--normalize', is_flag=True,
               help='''Converts input files into data store standard''')
-@click.option('--gnm', metavar = '<gnm#>',
+@click.option('--gnm', metavar = '<INT>', type=int,
               help='''Genome Version for Normalizer. ex. gnm1''')
-@click.option('--ann', metavar = '<ann#>',
+@click.option('--ann', metavar = '<INT>', type=int,
               help='''Annotation Version for Normalizer. ex. ann1''')
 @click.option('--genus', metavar = '<STRING>',
               help='''Genus of organism input file''')
