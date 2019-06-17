@@ -17,9 +17,9 @@ from incongruency_detector.Normalizer import Normalizer
 @click.option('--normalize', is_flag=True,
               help='''Converts input files into data store standard''')
 @click.option('--gnm',
-              help='''Genome Version for Normalizer. ex. 1 = gnm1''')
+              help='''Genome Version for Normalizer. ex. gnm1''')
 @click.option('--ann',
-              help='''Annotation Version for Normalizer. ex. 1 = ann1''')
+              help='''Annotation Version for Normalizer. ex. ann1''')
 @click.option('--genus', metavar = '<STRING>',
               help='''Genus of organism input file''')
 @click.option('--species', metavar = '<STRING>',

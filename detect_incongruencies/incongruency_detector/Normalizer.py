@@ -26,13 +26,13 @@ class Normalizer:
         subprocess.check_call('which samtools', shell=True)  # check in env
         self.target = target
         self.options = kwargs
-        self.gnm = kwargs.get('gnm')
-        self.ann = kwargs.get('ann')
+        self.gnm = 'gnm{}'.format(kwargs.get('gnm'))
+        self.ann = 'ann{}'.format(kwargs.get('ann'))
         self.genus = kwargs.get('genus')
         self.species = kwargs.get('species')
         self.infra_id = kwargs.get('infra_id')
         self.unique_key = kwargs.get('unique_key')
-        self.readme_tempalte = kwargs.get('readme_template')
+        self.readme_template = kwargs.get('readme_template')
         self.yaml=YAML(typ='safe')   # round-trip default
         self.readme_specification = ''  # will be filled if yaml validates
         if not kwargs.get('logger'):
@@ -61,10 +61,10 @@ Minimum requirements for normalizer are:
         if check_file(self.readme_template):
             logger.info('Checking README Speficiation: {}'.format(
                                                         self.readme_template))
-            self.readme_specification = yaml.load(open(self.readme_template, 
+            self.readme_specification = self.yaml.load(open(self.readme_template, 
                                                        'rt'))
-            for k in readme_specification:
-                logger.debug('{}: {}'.format(k, readme_specification[k]))
+            for k in self.readme_specification:
+                logger.debug('{}: {}'.format(k, self.readme_specification[k]))
         self.gensp = '{}{}'.format(self.genus[:3].lower(), 
                                    self.species[:2].lower())
 #        self.fasta_ids = {}
