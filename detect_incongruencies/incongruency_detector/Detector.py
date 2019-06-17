@@ -11,10 +11,10 @@ import json
 import importlib
 import importlib.util
 from glob import glob
+from sequencetools.tools.basic_fasta_stats import basic_fasta_stats
 from . import specification_checks
 from .helper import check_file, return_filehandle
 from .metrics import count_gff_features
-from .seqtools2.seqtools2.tools.basic_fasta_stats import basic_fasta_stats
 
 
 class Detector:
@@ -33,6 +33,7 @@ class Detector:
         self.checks['perform_gt'] = kwargs.get('disable_gt', True)
         self.checks['fasta_headers'] = kwargs.get(
                                             'disable_fasta_headers', True)
+        self.no_nodes = kwargs.get('no_nodes', False)
         self.canonical_types = ['genome_main', 
                                 'gene_models_main', 
                                 'ADDMORESTUFF']  #  types for detector
@@ -332,6 +333,7 @@ class Detector:
         '''
         logger = self.logger
         targets = self.target_objects  # get objects from class init
+        no_nodes = self.no_nodes  # if true, no nodes for DSCensor written
         for reference in sorted(targets, key=lambda k:self.rank[targets[k]['type']]):
             self.target = reference
             ref_method = getattr(specification_checks,  # reads checks from spec
@@ -350,9 +352,10 @@ class Detector:
 #                    file_name = targets[reference]['node_data']['filename']
 #                    if not self.options.get('no_busco'):
 #                        self.run_busco('genome', file_name)
-#                logger.info('Writing node object for {}'.format(c))
-                #self.write_me = targets[reference]['node_data']  # dscensor node
-                #self.write_node_object()  # write node for dscensor loading
+                if not no_nodes:
+                    logger.info('Writing node object for {}'.format(reference))
+                    self.write_me = targets[reference]['node_data']  # dscensor node
+                    self.write_node_object()  # write node for dscensor loading
             logger.debug('{}'.format(targets[reference]))
             if self.target_objects[reference]['children']:  # process children
                 children = self.target_objects[reference]['children']
@@ -370,7 +373,8 @@ class Detector:
                     passed = my_detector.run()
                     if passed:  # validation passed writing object node for DSCensor
                         self.passed[reference] = 1
-                        logger.info('Writing node object for {}'.format(c))
-                        self.write_me = children[c]['node_data']
-                        self.write_node_object()
+                        if not no_nodes:
+                            logger.info('Writing node object for {}'.format(c))
+                            self.write_me = children[c]['node_data']
+                            self.write_node_object()
                     logger.debug('{}'.format(c))
