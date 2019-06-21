@@ -4,6 +4,29 @@ import os, sys
 import gzip
 import errno
 import logging
+import subprocess
+
+
+def check_subprocess_dependencies():
+    '''attempts to run samtools, tabix and bgzip'''
+    subprocess.check_call('which bgzip', shell=True)  # check in env
+    subprocess.check_call('which tabix', shell=True)  # check in env
+    subprocess.check_call('which samtools', shell=True)  # check in env
+    return True
+
+
+def setup_logging(log_file, log_level):
+    '''Return logger based on log_file and log_level'''
+    log_level = getattr(logging, log_level.upper(), logging.INFO)
+    msg_format = '%(asctime)s|%(name)s|[%(levelname)s]: %(message)s'
+    logging.basicConfig(format=msg_format, datefmt='%m-%d %H:%M',
+                        level=log_level)
+    log_handler = logging.FileHandler(log_file, mode='w')
+    formatter = logging.Formatter(msg_format)
+    log_handler.setFormatter(formatter)
+    logger = logging.getLogger('detect_incongruencies')
+    logger.addHandler(log_handler)
+    return logger
 
 
 def return_filehandle(open_me):
