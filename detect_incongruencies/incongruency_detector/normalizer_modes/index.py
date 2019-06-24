@@ -40,11 +40,10 @@ def index_gff3(gff3):
               help='''File to write log to. (default:./normalizer_index.log)''')
 @click.option('--log_level', metavar = '<LOGLEVEL>', default='INFO',
               help='''Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL (default:INFO)''')
-def normalizer_index(target, log_file, log_level):
+def cli(target, log_file, log_level):
     '''Determines what type of index to apply to input target'''
     check_subprocess_dependencies()
     logger = setup_logging(log_file, log_level)
-    print(target)
     if not target:
         logger.error('--target argument required')
         sys.exit(1)
