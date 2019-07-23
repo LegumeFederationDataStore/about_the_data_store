@@ -34,12 +34,17 @@ class Detector:
         self.checks['fasta_headers'] = kwargs.get(
                                             'disable_fasta_headers', True)
         self.no_nodes = kwargs.get('no_nodes', False)
-        self.canonical_types = ['genome_main', 
+        self.canonical_types = ['genome_main',
+                                'protein_primaryTranscript',
+                                'protein',
                                 'gene_models_main', 
                                 'ADDMORESTUFF']  #  types for detector
         self.canonical_parents = {'genome_main': None,
-                                  'gene_models_main': 'genome_main'}
-        self.rank = {'genome_main': 0, 'gene_models_main': 1}
+                                  'gene_models_main': 'genome_main',
+                                  'protein_primaryTranscript' : 'gene_models_main',
+                                  'protein' : 'gene_models_main'}
+        self.rank = {'genome_main': 0, 'gene_models_main': 1, 'protein': 2,
+                     'protein_primaryTranscript': 2}
         self.log_level = kwargs.get('log_level', 'INFO')
         self.log_file = kwargs.get('log_file', './incongruencies.log')
         self.output_prefix = kwargs.get('output_prefix', './incongruencies')
@@ -74,8 +79,21 @@ class Detector:
             logger.debug('{}'.format(t))
             logger.debug('{}'.format(self.target_objects[t]))
             logger.info('Parent {}:'.format(t))
+            count = 0
+            set_primary = ''
+            primary = False
             for c in self.target_objects[t]['children']:
                 logger.info('Child {}'.format(c))
+                if self.target_objects[t]['children'][c]['type'] == 'protein_primaryTranscript':
+                    primary = True
+                if self.target_objects[t]['children'][c]['type'] == 'protein':
+                    count += 1
+                    set_primary = c
+            if count == 1 and not primary:
+                self.target_objects[t]['children'][set_primary]['type'] = 'protein_primaryTranscript'
+            if count > 1 and not primary:
+                logger.error('Multiple protein files found for {} one must be renamed to primary'.format(t))
+                sys.exit(1)
 #            for c in self.target_objects[t]['children']:
 #                logger.info('{}'.format(c))
         logger.info('Initialized Detector\n')
@@ -204,6 +222,10 @@ class Detector:
             logger.debug('Target Derived from Some Reference Searching...')
             ref_glob = '{}/{}*/*{}.*.gz'.format(organism_dir_path, 
                                       '.'.join(target_attributes[1:3]),
+                                      target_ref_type)
+            if self.rank[canonical_type] > 1:
+                ref_glob = '{}/{}*/*{}.*.gz'.format(organism_dir_path, 
+                                      '.'.join(target_attributes[1:4]),
                                       target_ref_type)
             my_reference = self.get_reference(ref_glob)
             if my_reference not in self.target_objects:  # new parent
@@ -335,31 +357,37 @@ class Detector:
         targets = self.target_objects  # get objects from class init
         no_nodes = self.no_nodes  # if true, no nodes for DSCensor written
         for reference in sorted(targets, key=lambda k:self.rank[targets[k]['type']]):
-            self.target = reference
-            ref_method = getattr(specification_checks,  # reads checks from spec
-                                 targets[reference]['type'])  # type ex genome_main
-            if not ref_method:  # if the target isnt in the hierarchy continue
-                logger.debug('Check for {} does not exist'.format(
-                                                targets[reference]['type']))
-                continue
-            logger.debug(ref_method)
-            my_detector = ref_method(self, **self.options)
-            passed = my_detector.run()
-            if passed:  # validation passed writing object node for DSCensor
-                self.passed[reference] = 1
-                self.node_data = targets[reference]['node_data']
-#                if targets[reference]['type'] == 'genome_main':  # BUSCO
-#                    file_name = targets[reference]['node_data']['filename']
-#                    if not self.options.get('no_busco'):
-#                        self.run_busco('genome', file_name)
-                if not no_nodes:
-                    logger.info('Writing node object for {}'.format(reference))
-                    self.write_me = targets[reference]['node_data']  # dscensor node
-                    self.write_node_object()  # write node for dscensor loading
-            logger.debug('{}'.format(targets[reference]))
+#            logger.info('HERE {}'.format(reference))
+            if not self.passed.get(reference, None):
+                self.target = reference
+                ref_method = getattr(specification_checks,  # reads checks from spec
+                                     targets[reference]['type'])  # type ex genome_main
+                if not ref_method:  # if the target isnt in the hierarchy continue
+                    logger.debug('Check for {} does not exist'.format(
+                                                    targets[reference]['type']))
+                    continue
+                logger.debug(ref_method)
+                my_detector = ref_method(self, **self.options)
+                passed = my_detector.run()
+                if passed:  # validation passed writing object node for DSCensor
+                    self.passed[reference] = 1
+                    self.node_data = targets[reference]['node_data']
+    #                if targets[reference]['type'] == 'genome_main':  # BUSCO
+    #                    file_name = targets[reference]['node_data']['filename']
+    #                    if not self.options.get('no_busco'):
+    #                        self.run_busco('genome', file_name)
+                    if not no_nodes:
+                        logger.info('Writing node object for {}'.format(reference))
+                        self.write_me = targets[reference]['node_data']  # dscensor node
+                        self.write_node_object()  # write node for dscensor loading
+                logger.debug('{}'.format(targets[reference]))
             if self.target_objects[reference]['children']:  # process children
                 children = self.target_objects[reference]['children']
                 for c in children:
+                    if self.passed.get(c, None):
+                        logger.info('Child {} Already Passed'.format(c))
+                        continue
+#                    logger.info('HERE child {}'.format(c))
                     logger.info('Performing Checks for {}'.format(c))
                     self.target = c
                     child_method = getattr(specification_checks,  # check for spec
@@ -372,7 +400,7 @@ class Detector:
                     my_detector = child_method(self, **self.options)
                     passed = my_detector.run()
                     if passed:  # validation passed writing object node for DSCensor
-                        self.passed[reference] = 1
+                        self.passed[c] = 1
                         if not no_nodes:
                             logger.info('Writing node object for {}'.format(c))
                             self.write_me = children[c]['node_data']

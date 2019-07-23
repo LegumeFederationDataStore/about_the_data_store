@@ -76,17 +76,17 @@ def update_hierarchy(hierarchy, feature_type, parent_types):
 
        Determines feature type hierarchy using type and attributes fields
     '''
-    if not parent_types:
-        if feature_type not in hierarchy:
+    if not parent_types:  # this feature must be a root
+        if feature_type not in hierarchy:  # add to hierarchy
             hierarchy[feature_type] = {'children': [], 'parents': [], 
                                        'rank': 0}
-        hierarchy[feature_type]['rank'] = 1
-    else:
+        hierarchy[feature_type]['rank'] = 1  # rank is 1 because no parents
+    else:  # feature has parents
         if feature_type not in hierarchy:
             hierarchy[feature_type] = {'children': [], 
                                        'parents': [], 'rank': 0}
         hierarchy[feature_type]['parents'] = parent_types
-        for p in parent_types:
+        for p in parent_types:  # set children and aprents for all p
             if hierarchy.get(p):
                 if feature_type not in hierarchy[p]['children']:
                     hierarchy[p]['children'].append(feature_type)
@@ -159,7 +159,7 @@ def prefix_gff3(target, gnm, ann, genus, species, infra_id, unique_key, logger, 
             parent_types.append(parent_type)
         update_hierarchy(type_hierarchy, feature_type, parent_types)
     ranking = 1  # switch to stop ranking in while below
-    while ranking:
+    while ranking:  # this is over-engineered for tabix indexing, but tis cool
         check = 0  # switch to indicate no features unranked
         for t in sorted(type_hierarchy, key=lambda k:type_hierarchy[k]['rank'], reverse=True):
             if type_hierarchy[t]['rank']:  # rank !=0
@@ -192,11 +192,11 @@ def prefix_gff3(target, gnm, ann, genus, species, infra_id, unique_key, logger, 
             for p in parent_ids:  # for all parents
                 new_id = '{}.{}'.format(feature_prefix, p)
                 new_ids.append(new_id)
-            new_ids = ','.join(new_ids)
+            new_ids = ','.join(new_ids)  # set delimiter for multiple parents
             l = get_parents.sub('Parent={}'.format(new_ids), l)
         new_gff.write('{}\n'.format(l))
     new_gff.close()
-    if not check_file(gff_file_path):
+    if not check_file(gff_file_path):  # check for output error if not found
         logger.error('Output file {} not found for normalize gff'.format(
                                                            gff_file_path))
         sys.exit(1)  # new file not found return False
