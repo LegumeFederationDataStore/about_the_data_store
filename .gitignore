@@ -1,6 +1,7 @@
 # files to not-track in Data Store collections
 _h5ai.*
 *.gz
+*.bz2
 *.gzi
 *.html
 *.tbi

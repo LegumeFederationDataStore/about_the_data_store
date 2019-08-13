@@ -1,0 +1,14 @@
+%YAML 1.2
+##### 
+strain.identifier:	Wm82
+strain.accession:	PI 518671
+strain.name:	Williams 82
+strain.origin:	Northern United States
+strain.description:	Williams 82, the soybean cultivar used to produce the reference genome sequence, was derived from backcrossing a phytophthora root rot resistance locus from the donor parent Kingwa into the recurrent parent Williams.
+##### 
+strain.identifier:	Zh13
+strain.accession:	
+strain.name:	Zhonghuang 13
+strain.origin:	China
+strain.description:	Zhonghuang 13 is a Chinese cultivar derived from accessions “Yudou 18” and “Zhongzuo 90052-76” by pedigree selection for high yield and stress tolerance (Shen et al., 2018; https://doi.org/10.1007/s11427-018-9360-0).
+

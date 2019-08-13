@@ -7,6 +7,9 @@ Scripts and prerelease data should be added here but the latter not checked into
 ### templates/
 Templates for yml-format README and manifests
 
+### allelic_pangene_method/
+Method for calculating a pan-gene set from a collection of annotations in a species (or related species)
+
 ### Top-level files:
 * **about_the_Data_Store.md:** Philosophy and general practices of the Data Store.
 * **about_the_registry.md:** Information about where we track the data collections.
