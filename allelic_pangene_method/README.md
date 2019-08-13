@@ -4,7 +4,7 @@ This method uses a combination of homology information among CDS sequences from 
 genomic synteny data. The objective is to identify sets of genes that are homologous and probably allelic 
 (i.e. come from similar genomic neighborhoods). The method employs BLAST, DAGChainer, single-linkage clustering, 
 and some special processing of coordinate data and BLAST results to make it all work. See details in 
-the "methods" notes : [notes/allelic_pangene_methods.sh] (notes/allelic_pangene_methods.sh)
+the "methods" [notes](notes/allelic_pangene_methods.sh)
 and the scripts (which are extremely simple, except for the clustering script by Michelle McMahon and
 Mike Sanderson [modified by S. Cannon]).
 
