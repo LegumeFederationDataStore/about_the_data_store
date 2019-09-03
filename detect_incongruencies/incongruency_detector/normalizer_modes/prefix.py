@@ -173,6 +173,7 @@ def prefix_gff3(target, gnm, ann, genus, species, infra_id, unique_key, logger, 
     feature_prefix = '{}.{}.{}.{}'.format(prefix, infra_id, gnm, ann)
     for l in sorted(gff3_lines, key=lambda x:(x[0], int(x[3]), type_rank(type_hierarchy, x[2]))):  # rank by chromosome, start, type_rank and stop
         if sort_only:  # do not prefix or change IDs
+            l = '\t'.join(l)
             new_gff.write('{}\n'.format(l))
             continue
         l[0] = '{}.{}.{}.{}'.format(prefix, infra_id, gnm, l[0])  # rename
@@ -242,9 +243,10 @@ def cli(target, gnm, ann, genus, species, infra_id, unique_key, sort_only, log_f
     fasta = ['fna', 'fasta', 'fa']
     gff3 = ['gff', 'gff3']
     logger = setup_logging(log_file, log_level)
-    target = os.path.abspath(target)
-    if not target and gnm and genus and species and infra_id and unique_key:
+    if not (target and gnm and genus and species and infra_id and unique_key):
         logger.error('--target, --species, --genus, --gnm, --infra_id, and --unique_key are required')
+        sys.exit(1)
+    target = os.path.abspath(target)
     gnm = 'gnm{}'.format(gnm)  # format user provided argument for gnm
     ann = 'ann{}'.format(ann)  # format user provided argument for ann
     file_attributes = target.split('.')

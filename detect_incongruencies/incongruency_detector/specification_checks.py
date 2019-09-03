@@ -288,6 +288,67 @@ class protein:
         self.target = detector.target
         self.logger = detector.logger
 
+    def run(self):
+        '''Run Checks for protein'''
+        logger = self.logger
+        logger.info('protein check {}'.format(self.target))
+        if not self.check_protein():
+            logger.error('protein file naming checks FAILED')
+            return False
+        logger.info('ALL protein CHCEKS PASSED')
+        return True
+
+    def check_protein(self):
+        '''accepts a list of annotation attributes split by "."
+
+           https://github.com/LegumeFederation/datastore/issues/23
+
+           checks these file attributes to ensure they are correct
+        '''
+        target = self.target
+        logger = self.logger
+        attr = os.path.basename(target).split('.')  # split on delimiter 
+        if len(attr) != 8:  # should be 8 fields
+            logger.error('File did not have 7 fields! {}'.format(attr))
+            return False
+        if len(attr[0]) != 5:  # should be 5 letter prefix
+            logger.error('File must have 5 letter prefix, not {}'.format(
+                                                                    attr[0]))
+            return False
+        if not attr[2].startswith('gnm'):  # should be gnm type
+            logger.error('File should have gnm in field 3, not {}'.format(
+                                                                     attr[2]))
+            return False
+        gnm_v = attr[2].replace('gnm', '')
+        try:
+            int(gnm_v)
+        except ValueError:  # best way to check for int in python2
+            logger.error('gnm version must be integer not {}'.format(gnm_v))
+            return False
+        if (len(gnm_v.split('.')) > 1):  # check for float
+            logger.error('gnm version must be integer not {}'.format(gnm_v))
+            return False
+        if not attr[3].startswith('ann'):  # should be gnm type
+            logger.error('File should have ann in field 4, not {}'.format(
+                                                                     attr[2]))
+            return False
+        ann_v = attr[3].replace('ann', '')
+        try:
+            int(ann_v)
+        except ValueError:  # best way to check for int in python2
+            logger.error('ann version must be integer not {}'.format(ann_v))
+            return False
+        if (len(ann_v.split('.')) > 1):  # check for float
+            logger.error('ann version must be integer not {}'.format(gnm_v))
+            return False
+        if not attr[6] == 'faa':  # should be gff3 type
+            logger.error('File should be gff3 not {}'.format(attr[6]))
+            return False
+        if not attr[7] == 'gz':  # should be gzip compressed
+            logger.error('Last field should be gz, not {}'.format(attr[6]))
+            return False
+        return True
+
 
     
 class protein_primaryTranscript:

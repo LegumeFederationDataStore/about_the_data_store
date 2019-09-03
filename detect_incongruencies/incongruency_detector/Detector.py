@@ -91,6 +91,7 @@ class Detector:
                     set_primary = c
             if count == 1 and not primary:
                 self.target_objects[t]['children'][set_primary]['type'] = 'protein_primaryTranscript'
+                self.target_objects[t]['children'][set_primary]['node_data']['canonical_type'] = 'protein_primaryTranscript'
             if count > 1 and not primary:
                 logger.error('Multiple protein files found for {} one must be renamed to primary'.format(t))
                 sys.exit(1)
@@ -223,7 +224,7 @@ class Detector:
             ref_glob = '{}/{}*/*{}.*.gz'.format(organism_dir_path, 
                                       '.'.join(target_attributes[1:3]),
                                       target_ref_type)
-            if self.rank[canonical_type] > 1:
+            if self.rank[canonical_type] > 1:  # feature has a subtype
                 ref_glob = '{}/{}*/*{}.*.gz'.format(organism_dir_path, 
                                       '.'.join(target_attributes[1:4]),
                                       target_ref_type)
@@ -358,7 +359,8 @@ class Detector:
         no_nodes = self.no_nodes  # if true, no nodes for DSCensor written
         for reference in sorted(targets, key=lambda k:self.rank[targets[k]['type']]):
 #            logger.info('HERE {}'.format(reference))
-            if not self.passed.get(reference, None):
+            if reference not in self.passed:
+                self.passed[reference] = 0
                 self.target = reference
                 ref_method = getattr(specification_checks,  # reads checks from spec
                                      targets[reference]['type'])  # type ex genome_main
@@ -384,9 +386,11 @@ class Detector:
             if self.target_objects[reference]['children']:  # process children
                 children = self.target_objects[reference]['children']
                 for c in children:
-                    if self.passed.get(c, None):
-                        logger.info('Child {} Already Passed'.format(c))
+                    if c in self.passed:
+                        logger.debug('Child {} Already Passed'.format(c))
                         continue
+
+                    self.passed[c] = 0
 #                    logger.info('HERE child {}'.format(c))
                     logger.info('Performing Checks for {}'.format(c))
                     self.target = c
