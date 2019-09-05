@@ -12,6 +12,7 @@ def check_subprocess_dependencies():
     subprocess.check_call('which bgzip', shell=True)  # check in env
     subprocess.check_call('which tabix', shell=True)  # check in env
     subprocess.check_call('which samtools', shell=True)  # check in env
+    subprocess.check_call('which gffread', shell=True)  # check in env
     return True
 
 

@@ -30,10 +30,11 @@ def cli():
 
        Current Modes:
 
-           prefix  (Will Sort GFF3 Files)
-           index
-           generate_readme
-           generate_checksums
+           prefix        (Will Sort GFF3 Files)
+           index         (Canonical indexing for datastore)
+           readme        (Generates README files for directories)
+           extract_fasta (extracts mRNA, CDS and Peptides from GFF3)
+           checksums     (Generate md5s for all files in target dir)
 
        Please run `normalizer <TOOL> --help` for individual usage
     '''
@@ -51,6 +52,12 @@ def cli():
     if mode == 'prefix':  # determine file type and prefix, sorts gff3
         from incongruency_detector.normalizer_modes import prefix
         prefix.cli()
+    if mode == 'readme':  # generate readmes from template and target
+        from incongruency_detector.normalizer_modes import generate_readme
+        generate_readme.cli()
+    if mode == 'extract_fasta':  # Extract FASTA features from GFF3
+        from incongruency_detector.normalizer_modes import extract_fasta
+        extract_fasta.cli()
 #    if mode == 'generate_readme':
 
 #        sort_and_index.main()

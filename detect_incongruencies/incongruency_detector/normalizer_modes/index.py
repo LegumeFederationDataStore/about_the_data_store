@@ -14,9 +14,10 @@ from ..helper import check_file, return_filehandle, create_directories,\
 
 def index_fasta(fasta):
     '''Indexes the supplied fasta file using bgzip and samtools'''
-    cmd = 'bgzip -f --index {}'.format(fasta)  # bgzip command
-    subprocess.check_call(cmd, shell=True)
     compressed_fasta = '{}.gz'.format(fasta)  # will now have gz after bgzip
+    if not check_file(compressed_fasta):
+        cmd = 'bgzip -f --index {}'.format(fasta)  # bgzip command
+        subprocess.check_call(cmd, shell=True)
     cmd = 'samtools faidx {}'.format(compressed_fasta)  # samtools faidx
     subprocess.check_call(cmd, shell=True)
     return compressed_fasta  # return new compressed and indexed gff
@@ -24,11 +25,15 @@ def index_fasta(fasta):
 
 def index_gff3(gff3):
     '''Indexes the supplied gff3 file using bgzip and tabix'''
-    cmd = 'bgzip -f {}'.format(gff3)  # bgzip command
-    subprocess.check_call(cmd, shell=True)
     compressed_gff = '{}.gz'.format(gff3)  # will now have gz after bgzip
+    if not check_file(compressed_gff):
+        cmd = 'bgzip -f {}'.format(gff3)  # bgzip command
+        subprocess.check_call(cmd, shell=True)
     cmd = 'tabix -p gff {}'.format(compressed_gff)  # tabix index command
-    subprocess.check_call(cmd, shell=True)
+    standard_outval = subprocess.call(cmd.split(' '))
+    if standard_outval:
+        cmd = 'tabix --csi -p gff {}'.format(compressed_gff)  # tabix index command
+        subprocess.check_call(cmd, shell=True)
     return compressed_gff  # return new compressed and indexed gff
 
 
