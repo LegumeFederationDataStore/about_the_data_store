@@ -53,8 +53,8 @@ def cli(target, log_file, log_level):
         logger.error('--target argument required')
         sys.exit(1)
     target = os.path.abspath(target)
-    file_types = ['fna', 'fasta', 'fa', 'gff', 'gff3', 'ADD MORE']
-    fasta = ['fna', 'fasta', 'fa']
+    file_types = ['fna', 'fasta', 'fa', 'gff', 'gff3', 'faa', 'ADD MORE']
+    fasta = ['fna', 'fasta', 'fa', 'faa']
     gff3 = ['gff', 'gff3']
     file_attributes = target.split('.')
     new_file = False

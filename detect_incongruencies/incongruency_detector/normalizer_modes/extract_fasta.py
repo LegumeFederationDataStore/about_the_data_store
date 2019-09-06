@@ -28,7 +28,7 @@ def primary_transcript_check(peptides, logger):
     primary = '{}.protein_primaryTranscript.faa'.format('.'.join(peptides.split('.')[:-2]))
     for record in sequence_helpers.get_seqio_fasta_record(seq_handle):
         count += 1
-        my_record = '{}\n{}'.format(record.id, record.seq)
+        my_record = '>{}\n{}'.format(record.id, record.seq)
         my_obj = {'record': my_record, 'length': len(record.seq)}
         gene_id = '.'.join(record.id.split('.')[:-1])
         if gene_id not in longest:
