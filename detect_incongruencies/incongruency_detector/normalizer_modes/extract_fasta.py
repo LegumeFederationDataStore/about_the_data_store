@@ -50,12 +50,12 @@ def run_gffread(gff, reference, logger):
     '''Reads gff3 file and writes mRNA, CDS and Peptides'''
     gff_dir = os.path.dirname(gff)
     gff_attributes = os.path.basename(gff).split('.')
-    mrna = '{}/{}.mRNA.fna'.format(gff_dir, '.'.join(gff_attributes[:5]))
+    mrna = '{}/{}.mrna.fna'.format(gff_dir, '.'.join(gff_attributes[:5]))
     cds = '{}/{}.cds.fna'.format(gff_dir, '.'.join(gff_attributes[:5]))
     pep = '{}/{}.protein.faa'.format(gff_dir, '.'.join(gff_attributes[:5]))
     cmd = 'gffread {} -g {} -w {} -x {} -y {} -W'.format(gff, reference, mrna,
                                                          cds, pep)
-#    subprocess.check_call(cmd, shell=True)
+    subprocess.check_call(cmd, shell=True)
     primary_transcript_check(pep, logger)
 
 
