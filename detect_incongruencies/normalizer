@@ -34,6 +34,7 @@ def cli():
            index         (Canonical indexing for datastore)
            readme        (Generates README files for directories)
            extract_fasta (extracts mRNA, CDS and Peptides from GFF3)
+           busco         (Runs BUSCO on the target)
            checksums     (Generate md5s for all files in target dir)
 
        Please run `normalizer <TOOL> --help` for individual usage
@@ -58,6 +59,9 @@ def cli():
     if mode == 'extract_fasta':  # Extract FASTA features from GFF3
         from incongruency_detector.normalizer_modes import extract_fasta
         extract_fasta.cli()
+    if mode == 'busco':  # Run BUSCO with mode and lineage on target
+        from incongruency_detector.normalizer_modes import busco_normalizer
+        busco_normalizer.cli()
 #    if mode == 'generate_readme':
 
 #        sort_and_index.main()

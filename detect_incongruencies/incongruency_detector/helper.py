@@ -16,6 +16,13 @@ def check_subprocess_dependencies():
     return True
 
 
+def check_busco_dependencies():
+    '''attempts to run samtools, tabix and bgzip'''
+    subprocess.check_call('which run_BUSCO.py', shell=True)  # check in env
+    subprocess.check_call('which augustus', shell=True)  # check in env
+    return True
+
+
 def setup_logging(log_file, log_level):
     '''Return logger based on log_file and log_level'''
     log_level = getattr(logging, log_level.upper(), logging.INFO)
@@ -68,6 +75,14 @@ def create_directories(dirpath):
     except OSError as e:
         if e.errno != errno.EEXIST:  # ignore if error is exists else raise
             raise
+
+
+def change_directories(dirpath):
+    '''cd to path, does not modify calling process CWD'''
+    try:
+        os.chdir(dirpath)
+    except OSError as e:
+        raise
 
 
 if __name__ == '__main__':
