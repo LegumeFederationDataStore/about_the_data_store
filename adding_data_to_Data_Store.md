@@ -8,6 +8,13 @@ We would love to work with you. You are welcome to use the templates in this
 directory and begin preparing your data for submission, but the final uploading
 will need to be done by curators with the affiliated database projects.
 
+#### Links to a few frequently-used updating steps:
+  - [checksums](#checksums)
+  - [github](#github) 
+  - [cyverse](#cyverse)
+
+
+
 ### Upload the data to the local Data Store file system
 The data store is accessible via command line from several servers.
 As of winter, 2018, any of these servers can be used:
@@ -72,7 +79,7 @@ Fill out the MANIFEST files.
   rename 's/KEY/K8RT/' *KEY*
 ```
 
-### Calculate the CHECKSUMs
+### Calculate the CHECKSUMs <a name="checksums"></a>
 Note the -r flag for the md5 command.
 ```
   KEY=K8RT
@@ -106,7 +113,7 @@ passing in the outer-level directory name:
   /usr/local/www/data/about_the_data_store/scripts/metadata_summarize.sh Glycine_max
 ```
 
-### Update the CyVerse Data Store
+### Update the CyVerse Data Store <a name="cyverse></a>
 Change to the species directory where your new collection sits and then 
 also use the irods icommands to cd to the corresponding location at CyVerse:
 
@@ -130,7 +137,7 @@ recursively push the correct ones.
   ils $DIR
 ```
   
-### UPDATE the metadata files at GitHub, for an existing repository
+### UPDATE the metadata files at GitHub, for an existing repository <a name="github"></a>
 The metadata files (README, MANIFESTs, CHECKSUM) should be updated GitHub:
 https://github.com/LegumeFederationDataStore
 There is a repository for each outer-level directory (Glycine_max, Gene_families, etc.).
