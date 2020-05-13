@@ -153,6 +153,24 @@ assembly constructed from the aradu and araip assemblies. This file was named th
       arahy.aradu1_araip1.gnm1.div.2B6N.snp_chip.hmp (WARNING: special case)
 ```
 
+#### Naming expression directories and files:
+Directory: accession.gnm#.ann#.expr.[key]  
+This indicates that the expression dataset has been analyzed with respect to the indicated genome and annotation.
+
+Expression data that is analyzed with respect to another assembly and annotation would result in a directory name with the same format; the instances are distinguished by the key, and elaborated as needed in the description and other fields in the README:
+  accession.gnm1.ann1.expr.ABCD`
+  accession.gnm2.ann4.expr.ZYXW`
+
+Files: [species-abbreviation].gnm#.ann#.expr.[key].[descriptors].[ext]  
+Example:
+```
+      Glycine_max/Wm82.gnm2.ann1.expr.G7ZY/
+        glyma.Wm82.gnm2.ann1.expr.G7ZY.metadata.xlsx
+        glyma.Wm82.gnm2.ann1.expr.G7ZY.samples.tsv
+        glyma.Wm82.gnm2.ann1.expr.G7ZY.source.tsv
+        glyma.Wm82.gnm2.ann1.expr.G7ZY.values.tsv
+```
+
 #### Naming phenotype directories and files:
 Directory: [study-name].trt.[key]  
 Files: [species-abbreviation].[study-name].trt.[key].[descriptors/observations].xsl[x]  
