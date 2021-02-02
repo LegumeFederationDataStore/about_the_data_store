@@ -1,0 +1,21 @@
+MapName	ICABunsi_x_SXB405_a
+Synopsis	Map of lines ICA Bunsi x SXB 405, segregating for pod dehiscence
+Description	The ICABunsi_x_SXB405_a map, with 382 SNP markers, is from an 238-RIL pop., derived from Meso ICA Bunsi (PD-susceptible) and SXB 405 (PD-resistant).
+TaxonID	3885
+MappingParent	ICA Bunsi
+MappingParent	SXB 405
+CurationNotes	Curated by Scott Kalberer and Steven Cannon, 2020-12
+PMID	31486530
+DOI	10.1111/nph.16164
+#Linkage Group	Num	Length (cM)
+ICABunsi_x_SXB405_a_Pv01	1	94.9973
+ICABunsi_x_SXB405_a_Pv02	2	104.4736
+ICABunsi_x_SXB405_a_Pv03	3	83.1883
+ICABunsi_x_SXB405_a_Pv04	4	101.0743
+ICABunsi_x_SXB405_a_Pv05	5	89.5610
+ICABunsi_x_SXB405_a_Pv06	6	77.1354
+ICABunsi_x_SXB405_a_Pv07	7	100.3816
+ICABunsi_x_SXB405_a_Pv08	8	61.2496
+ICABunsi_x_SXB405_a_Pv09	9	97.3178
+ICABunsi_x_SXB405_a_Pv10	10	60.6375
+ICABunsi_x_SXB405_a_Pv11	11	82.7513
