@@ -10,3 +10,8 @@ _h5ai.*
 *.doc
 *.docx
 *.fai
+logs/
+scripts/Glycine_max/
+scripts/bionorm/
+scripts/logs/
+
