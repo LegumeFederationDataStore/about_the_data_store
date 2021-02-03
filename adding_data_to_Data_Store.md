@@ -8,6 +8,15 @@ We would love to work with you. You are welcome to use the templates in this
 directory and begin preparing your data for submission, but the final uploading
 will need to be done by curators with the affiliated database projects.
 
+If you have genetic data that you would like to submit (maps, markers, association data, QTL results), 
+we have templates to help you get your data into formats that we can incorporate into the Data Store
+and associated applications. See these templates for GWAS and QTL data:
+
+  * [GWAS template](http://bit.ly/template__LIS_gwas)
+
+  * [QTL template](http://bit.ly/template__LIS_qtl) - including map and marker worksheets 
+
+
 #### Links to a few frequently-used updating steps:
   - [checksums](#checksums)
   - [github](#github) 
