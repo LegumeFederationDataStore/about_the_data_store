@@ -13,7 +13,6 @@ we have templates to help you get your data into formats that we can incorporate
 and associated applications. See these templates for GWAS and QTL data:
 
   * [GWAS template](http://bit.ly/template__LIS_gwas)
-
   * [QTL template](http://bit.ly/template__LIS_qtl) - including map and marker worksheets 
 
 
@@ -21,7 +20,6 @@ and associated applications. See these templates for GWAS and QTL data:
   - [checksums](#checksums)
   - [github](#github) 
   - [cyverse](#cyverse)
-
 
 
 ### Upload the data to the local Data Store file system
