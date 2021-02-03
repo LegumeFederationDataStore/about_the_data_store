@@ -3,7 +3,7 @@
 NOTE: The instructions below are for curators working on any instance of
 LegFed Data Store - at e.g. soybase.org, peanutbase.org, legumeinfo.org etc. 
 If you are a researcher or user of and you have a data set that you would like
-to contribute, PLEASE <a href="https://legumeinfo.org/contact">CONTACT US!</a>. 
+to contribute, PLEASE <a href="https://legumeinfo.org/contact">CONTACT US!</a> 
 We would love to work with you. You are welcome to use the templates in this 
 directory and begin preparing your data for submission, but the final uploading
 will need to be done by curators with the affiliated database projects.
